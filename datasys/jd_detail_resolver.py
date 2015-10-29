@@ -24,8 +24,14 @@ def resolve_Properties(html):
     return property_map
 
 def resolve_Images(html):
-    pass
-
+    doc = libxml2.htmlReadDoc(html,None,'utf8',PARSE_OPTIONS)
+    #img_doms = doc.xpathEval('//div[@class="spec-items"]/ul/li/img/@src')
+    img_doms = doc.xpathEval('//div[@class="spec-items"]/ul/li/img/@data-url')
+    img_list = []
+    for dom in img_doms:
+        img_list.append(dom.content)
+    doc.freeDoc()
+    return img_list
 
 
 
@@ -1174,3 +1180,4 @@ dataLayer = [{
         """
 
     print resolve_Properties(html)
+    print resolve_Images(html)
