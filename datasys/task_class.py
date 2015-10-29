@@ -3,8 +3,7 @@
 import sys
 import time
 import logging
-
-from datasys import timeHelper
+import timeHelper
 import dbhelper
 
 

@@ -2,8 +2,8 @@
 
 import sys
 import time
-
-from datasys import timeHelper
+import logging
+import timeHelper
 import url_utils
 import jd_list_resolver
 import jd_API
@@ -29,14 +29,14 @@ def __get_category_page_url__(category_id, page_num=1):
 
 def crawl_category(category_id):
 
-    print '%s -- category_id = %s -- page 1' %(timeHelper.getNowLong(),category_id)
+    logging.info('category_id = %s -- page 1' %(category_id))
     html = url_utils.getWebResponse(__get_category_page_url__(category_id,1),'utf-8')
     total_pages = jd_list_resolver.resolveTotalPageNum(html)
 
     product_list = jd_list_resolver.resolveProductListFromPage(html)
 
     for page_iter in range(2,total_pages+1):
-        print '%s -- category_id = %s -- page %s' %(timeHelper.getNowLong(),category_id,page_iter)
+        logging.info('category_id = %s -- page %s' %(category_id,page_iter))
         url = __get_category_page_url__(category_id,page_iter)
         html = url_utils.getWebResponse(url,'utf-8')
         product_list = product_list + jd_list_resolver.resolveProductListFromPage(html)
@@ -49,19 +49,6 @@ def crawl_category(category_id):
 
     # Get price of all products
     price_obj = jd_API.getPrices_JD(sku_list)
-    # print len(sku_list)
-    # print len(price_obj)
-    # print sku_list[199]
-    # print product_list[199][1]
-    # print price_obj[199]
-    #
-    # print sku_list[200]
-    # print product_list[200][1]
-    # print price_obj[200]
-    #
-    # print sku_list[198]
-    # print product_list[198][1]
-    # print price_obj[198]
 
     ret_obj = {
         'status': -1,
@@ -81,20 +68,19 @@ def crawl_category(category_id):
         product_id = product_list[i][0]
         pkey = '%s' %product_id
         if pkey in price_obj:
-            product_list[i] = product_list[i] + (price_obj[pkey][0],price_obj[pkey][1],nowdate,nowtime,category_id,)
+            product_list[i] = product_list[i] + (price_obj[pkey][0],price_obj[pkey][1],price_obj[pkey][2],nowdate,nowtime,category_id,)
         else:
-            print 'Error: product_id=%s cannot get result' %(product_id,price_id)
+            logging.error('Error: product_id=%s cannot get result' %(product_id,price_id))
             continue
 
     # persist in database
     # (sku_id,sku_title,sku_url,sku_thumnail_url,sku_stock,comment_count,is_global,is_pay_on_delivery,is_free_gift,sku_icon_url, price, price_m, update_date,update_time, category_id)
     sql = '''
       replace into jd_item_dynamic (sku_id,title,url,thumbnail_url,stock_status,comment_count,is_global,is_pay_on_delivery,
-      has_free_gift,icon_url,price,price_m,update_date,update_time,category_id) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+      has_free_gift,icon_url,price,price_m,price_pcp,update_date,update_time,category_id) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
       '''
     affected_rows = dbhelper.executeSqlWriteMany(sql,product_list)
-    print '%s -- Saved to DB -- category_id = %s -- sku_count=%s -- affected_rows=%s' %(
-    timeHelper.getNowLong(),category_id,total_goods_num,affected_rows)
+    logging.info('Saved to DB -- category_id = %s -- sku_count=%s -- affected_rows=%s' %(category_id,total_goods_num,affected_rows))
 
     ret_obj = {
         'status': 0,

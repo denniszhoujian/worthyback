@@ -47,6 +47,9 @@ def resolveProductListFromPage(html):
                 except:
                     sku_thumnail_url = sku_doc.xpathEval('//div[@class="p-img"]/a/img/@src')[0].content
                 sku_title = sku_doc.xpathEval('//div[@class="p-name"]/a/@title')[0].content
+
+                if len(sku_title)==0:
+					sku_title = sku_doc.xpathEval('//div[@class="p-name"]/a/em')[0].content
                 comment_count = int(sku_doc.xpathEval('//div[@class="p-commit"]/strong/a')[0].content)
 
                 sku_icon_url = ""

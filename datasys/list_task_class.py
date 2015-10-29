@@ -1,4 +1,4 @@
-
+# encoding: utf-8
 
 import sys
 import dbhelper
@@ -6,11 +6,10 @@ import time
 import logging
 from task_class import DataTask
 import jd_list_crawler
+import mylog
 
 reload(sys)
 sys.setdefaultencoding('utf8')
-
-
 
 class Jd_List_DataTask(DataTask):
 
