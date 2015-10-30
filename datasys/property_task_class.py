@@ -10,7 +10,7 @@ import mylog
 reload(sys)
 sys.setdefaultencoding('utf8')
 
-mylog.configLogging('property_task')
+mylog.configLogging('property_task') 
 
 class Jd_Property_DataTask(DataTask):
 
