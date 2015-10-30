@@ -2,6 +2,7 @@
 
 import sys
 import urllib2
+import re
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -31,4 +32,7 @@ def getStringBetween(str, str_begin, str_end):
         return str
     return str[index1+len(str_begin):index2]
 
-
+def removeHTMLTags(html,replacement=''):
+    dr = re.compile(r'<[^>]+>',re.S)
+    dd = dr.sub(replacement,html)
+    return dd

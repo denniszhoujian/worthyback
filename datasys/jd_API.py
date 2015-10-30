@@ -4,8 +4,8 @@ import sys
 import url_utils
 import json
 import time
-import logging
 import dbhelper
+import logging
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -222,19 +222,12 @@ def get_Promo_Sku(sku_id):
 
 if __name__ == "__main__":
     #print getPrices_JD([1279171,595936,1279827,1279171,595936,1279827])
-    #sql = 'select distinct sku_id from jd_item_dynamic limit 183'
-    sql = 'select distinct category_id from jd_item_dynamic'
-    retrows = dbhelper.executeSqlRead2(sql)
-    alist = []
-    for row in retrows:
-        alist.append(row[0])
-    # print len(getCommentCount_JD(alist))
-    # for item in alist:
-    #     print item
-    #     print get_Promo_Category(item)
-    #     time.sleep(0.4)
-    text = json.dumps(get_Promo_Sku(1279171))
-    print text
-    print json.loads(text)
+    # sql = 'select distinct sku_id from jd_item_dynamic limit 183'
+    # retrows = dbhelper.executeSqlRead2(sql)
+    # alist = []
+    # for row in retrows:
+    #     alist.append(row[0])
+    print get_Promo_Sku(1279171)
+    logging.error('test log')
 
-    
+

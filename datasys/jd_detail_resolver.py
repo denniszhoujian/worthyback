@@ -1,6 +1,9 @@
 # encoding: utf-8
 import sys
 import libxml2
+import logging
+import re
+import url_utils
 
 PARSE_OPTIONS = libxml2.HTML_PARSE_RECOVER + libxml2.HTML_PARSE_NOERROR + libxml2.HTML_PARSE_NOWARNING
 
@@ -15,11 +18,31 @@ def resolve_Properties(html):
             continue
         pkey = td_docs[0].content
         pvalue = td_docs[1].content
-        #print '%s = %s' %(pkey,pvalue)
-
         property_map[pkey] = pvalue
-
         td_doc.freeDoc()
+    if len(property_map)==0:
+        div_docs = doc.xpathEval('//div[@id="product-detail-2"]/div')
+        try:
+            text = '%s' %div_docs[0]
+            text = url_utils.removeHTMLTags(text,' ')
+            text = text.replace('\n',' ')
+            text = text.replace('\r',' ')
+            key_value_pair_texts = text.split(' ')
+            for kv_pair in key_value_pair_texts:
+                if len(kv_pair)==0:
+                    continue
+                kv_list = kv_pair.split('：')
+                if len(kv_list)<2:
+                    kv_list = kv_pair.split(':')
+                if len(kv_list)>=2:
+                    if len(kv_list[1].strip())>0:
+                        property_map[kv_list[0]] = kv_list[1]
+
+            if len(property_map)==0:
+                property_map['__DEFAULT__'] = text
+
+        except Exception as e:
+            logging.warning('cannot resolve properties anyway, div html = %s' %div_docs)
     doc.freeDoc()
     return property_map
 
@@ -32,8 +55,6 @@ def resolve_Images(html):
         img_list.append(dom.content)
     doc.freeDoc()
     return img_list
-
-
 
 
 if __name__ == "__main__":

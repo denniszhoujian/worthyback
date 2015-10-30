@@ -2,10 +2,9 @@
 
 import sys
 import time
-import logging
 import timeHelper
 import dbhelper
-
+import logging
 
 reload(sys)
 sys.setdefaultencoding('utf8')

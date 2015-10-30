@@ -3,13 +3,14 @@
 import sys
 import dbhelper
 import time
-import logging
 from task_class import DataTask
 import jd_list_crawler
 import mylog
 
 reload(sys)
 sys.setdefaultencoding('utf8')
+
+mylog.configLogging('list_task')
 
 class Jd_List_DataTask(DataTask):
 

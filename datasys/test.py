@@ -2,6 +2,9 @@
 
 import json
 import timeHelper
+import urllib2
+import mylog
+
 
 for i in xrange(1):
     print i
@@ -12,3 +15,9 @@ blist = set([3,7])
 print list(alist-blist)
 
 print timeHelper.getTimeStringFromTimeStamp(1446307200,'%Y-%m-%d %H:%M:%S')
+
+resp = urllib2.urlopen('http://item.jd.com/1310729.html')
+html = resp.read()
+html2 = html.decode('gb18030')
+print html2
+

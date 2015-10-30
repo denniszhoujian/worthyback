@@ -2,7 +2,6 @@
 
 import sys
 import json
-
 from datasys import timeHelper
 import url_utils
 import dbhelper

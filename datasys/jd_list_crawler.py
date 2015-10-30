@@ -9,13 +9,11 @@ import jd_list_resolver
 import jd_API
 import dbhelper
 
-
 reload(sys)
 sys.setdefaultencoding('utf8')
 
 # set to 0.1 has problem, try 0.5
 SLEEP_TIME = 0.5
-
 
 def __get_category_page_url__(category_id, page_num=1):
     # http://list.jd.com/list.html?cat=9987%2C830%2C863&delivery=1&page=1
@@ -68,7 +66,7 @@ def crawl_category(category_id):
         product_id = product_list[i][0]
         pkey = '%s' %product_id
         if pkey in price_obj:
-            product_list[i] = product_list[i] + (price_obj[pkey][0],price_obj[pkey][1],price_obj[pkey][2],nowdate,nowtime,category_id,)
+            product_list[i] = product_list[i] + (price_obj[pkey][0],price_obj[pkey][1],price_obj[pkey][2],nowdate,nowtime,)
         else:
             logging.error('Error: product_id=%s cannot get result' %(product_id,price_id))
             continue
@@ -77,7 +75,7 @@ def crawl_category(category_id):
     # (sku_id,sku_title,sku_url,sku_thumnail_url,sku_stock,comment_count,is_global,is_pay_on_delivery,is_free_gift,sku_icon_url, price, price_m, update_date,update_time, category_id)
     sql = '''
       replace into jd_item_dynamic (sku_id,title,url,thumbnail_url,stock_status,comment_count,is_global,is_pay_on_delivery,
-      has_free_gift,icon_url,price,price_m,price_pcp,update_date,update_time,category_id) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+      has_free_gift,icon_url,price,price_m,price_pcp,update_date,update_time) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
       '''
     affected_rows = dbhelper.executeSqlWriteMany(sql,product_list)
     logging.info('Saved to DB -- category_id = %s -- sku_count=%s -- affected_rows=%s' %(category_id,total_goods_num,affected_rows))
@@ -87,6 +85,13 @@ def crawl_category(category_id):
         'affected_rows': affected_rows,
         'sku_count': total_goods_num
     }
+
+    item_cat_list = []
+    for prod in product_list:
+        item_cat_list.append((prod[0],category_id,))
+    sql2 = 'replace into jd_item_category values (%s,%s)'
+    affected_rows2 = dbhelper.executeSqlWriteMany(sql2,item_cat_list)
+    logging.info('Saved to DB - item_category - affected rows = %s' %affected_rows2)
 
     return ret_obj
 
