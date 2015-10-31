@@ -228,6 +228,6 @@ if __name__ == "__main__":
     # for row in retrows:
     #     alist.append(row[0])
     print get_Promo_Sku(1279171)
-    logging.error('test log')
+    print getCommentCount_JD([1279171])
 
 

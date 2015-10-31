@@ -10,12 +10,15 @@ import mylog
 reload(sys)
 sys.setdefaultencoding('utf8')
 
-mylog.configLogging('property_task') 
+mylog.configLogging('property_task')
 
 class Jd_Property_DataTask(DataTask):
 
     def __init__(self):
         self.job_name = "JD_PROPERTY_CRAWLER"
+
+    def __init__(self, job_name):
+        self.job_name = job_name
 
      # VIRTUAL
     def __load_all_tasks__(self):
@@ -28,7 +31,7 @@ class Jd_Property_DataTask(DataTask):
 
     # VIRTUAL
     def __task_order__(self,task_id):
-        return jd_detail_crawler.crawl_detail_property(task_id)
+        return jd_detail_crawler.crawl_detail_all(task_id)
 
 #
 # ==================================================================================
@@ -47,7 +50,8 @@ if __name__ == "__main__":
         except:
             print 'Error in arguments'
 
-    data_task = Jd_Property_DataTask()
+    data_task = Jd_Property_DataTask(job_name="JD_PROPERTY_CRAWLER")
+    data_task.configTask(is_daily=False,interval_hours=24*30,sleep_time=0.2)
     data_task.doTask(M,N)
 
 

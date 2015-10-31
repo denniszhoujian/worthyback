@@ -43,7 +43,7 @@ def __load_white_categories___():
     return retlist
 
 def __expand_to_sub_categories__(category_id):
-    sql = 'select distinct id from jd_category where id like "%s%%"' %category_id
+    sql = 'select distinct id from jd_category where id like "%s-%%"' %category_id
     retrows = dbhelper.executeSqlRead(sql)
     retlist = []
     for row in retrows:

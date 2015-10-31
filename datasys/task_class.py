@@ -9,28 +9,38 @@ import logging
 reload(sys)
 sys.setdefaultencoding('utf8')
 
+def abstract():
+    import inspect
+    caller = inspect.getouterframes(inspect.currentframe())[1][3]
+    raise NotImplementedError(caller + ' must be implemented in subclass')
+
 class DataTask():
 
     job_name = ""
+    is_daily = True
+    interval_hours = 24
     SLEEP_TIME = 0.5
 
-    # VIRTUAL
-    def __load_all_tasks__(self):
-        pass
+    def __load_all_tasks__(self):abstract()
 
-    # VIRTUAL
-    def __task_order__(self,task_id):
-        pass
+    def __task_order__(self,task_id):abstract()
+
+    def configTask(self, is_daily, interval_hours, sleep_time):
+        self.is_daily = is_daily
+        self.interval_hours = interval_hours
+        self.SLEEP_TIME = sleep_time
 
     def __record_task_complete__(self, task_id):
-        sql = 'insert into task_status(job_name,task_id,update_time) values("%s","%s","%s")' %(self.job_name,task_id,
-                                                                                               timeHelper.getNowLong())
+        sql = 'insert into task_status(job_name,task_id,update_time) values("%s","%s","%s")' %(self.job_name,task_id,timeHelper.getNowLong())
         affected_rows = dbhelper.executeSqlWrite1(sql)
         return affected_rows
 
     def __get_task_already_done__(self):
-        sql = 'select task_id from task_status where job_name="%s" and update_time>="%s 0:00:00"' %(self.job_name,
-                                                                                                timeHelper.getNow())
+        if self.is_daily:
+            sql = 'select task_id from task_status where job_name="%s" and update_time>="%s 0:00:00"' %(self.job_name,timeHelper.getNow())
+        else:
+            stime = timeHelper.getTimeAheadOfNowHours(self.interval_hours)
+            sql = 'select task_id from task_status where job_name="%s" and update_time>="%s 0:00:00"' %(self.job_name,stime)
         retrows = dbhelper.executeSqlRead(sql)
         catlist = []
         for row in retrows:
