@@ -21,6 +21,9 @@ class DataTask():
     interval_hours = 24
     SLEEP_TIME = 0.5
 
+    def __init__(self):
+        self.job_name = self.__class__
+
     def __load_all_tasks__(self):abstract()
 
     def __task_order__(self,task_id):abstract()

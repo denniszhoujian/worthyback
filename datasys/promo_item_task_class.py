@@ -4,18 +4,15 @@ import sys
 import dbhelper
 import time
 from task_class import DataTask
-import jd_detail_crawler
+import jd_api_crawler
 import mylog
 
 reload(sys)
 sys.setdefaultencoding('utf8')
 
-mylog.configLogging('property_task')
+mylog.configLogging('promo_item_task')
 
-class Jd_Property_DataTask(DataTask):
-
-    def __init__(self,job_name):
-        self.job_name = job_name
+class Jd_Promo_item_DataTask(DataTask):
 
      # VIRTUAL
     def __load_all_tasks__(self):
@@ -28,7 +25,7 @@ class Jd_Property_DataTask(DataTask):
 
     # VIRTUAL
     def __task_order__(self,task_id):
-        return jd_detail_crawler.crawl_detail_all(task_id)
+        return jd_api_crawler.crawl_item_promo(task_id)
 
 #
 # ==================================================================================
@@ -47,8 +44,8 @@ if __name__ == "__main__":
         except:
             print 'Error in arguments'
 
-    data_task = Jd_Property_DataTask(job_name="JD_PROPERTY_CRAWLER")
-    data_task.configTask(is_daily=False,interval_hours=24*30,sleep_time=0.2)
+    data_task = Jd_Promo_item_DataTask()
+    data_task.configTask(is_daily=True,interval_hours=24,sleep_time=0.2)
     data_task.doTask(M,N)
 
 
