@@ -3,11 +3,16 @@
 import sys
 import urllib2
 import re
+import logging
+import time
 
 reload(sys)
 sys.setdefaultencoding('utf8')
 
-def getWebResponse(url, encoding=""):
+MAX_TRIES = 3
+ERROR_SLEEP_TIME = 5
+
+def _getWebResponse(url, encoding=""):
     html = ""
     resp = urllib2.urlopen(url)
     try:
@@ -17,6 +22,22 @@ def getWebResponse(url, encoding=""):
     finally:
         resp.close()
     return html
+
+def getWebResponse(url,encoding=""):
+    tries = 0
+    while tries < MAX_TRIES:
+        tries += 1
+        html = ""
+        try:
+            html = _getWebResponse(url,encoding)
+        except Exception as e:
+            logging.error(e)
+            time.sleep(ERROR_SLEEP_TIME)
+            continue
+        return html
+    logging.error('FAILED to get HTML response, url = %s' %url)
+    return ""
+
 
 
 def removeJsonP(jsonp_str):

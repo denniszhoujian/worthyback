@@ -6,22 +6,26 @@ import time
 from task_class import DataTask
 import jd_api_crawler
 import mylog
-import category_helper
 
 reload(sys)
 sys.setdefaultencoding('utf8')
 
-mylog.configLogging('promo_category_task')
+mylog.configLogging('comment_stats_task')
 
-class Jd_Promo_Category_DataTask(DataTask):
+class Jd_Comment_Stats_DataTask(DataTask):
 
      # VIRTUAL
     def __load_all_tasks__(self):
-        return category_helper.load_all_white_sub_categories()
+        sql = 'select distinct sku_id from jd_item_category order by category_id ASC'
+        retrows = dbhelper.executeSqlRead2(sql)
+        sku_list = []
+        for row in retrows:
+            sku_list.append(row[0])
+        return sku_list
 
     # VIRTUAL
     def __task_order__(self,task_id):
-        return jd_api_crawler.crawl_category_promo(task_id)
+        return jd_api_crawler.crawl_sku_comment_count(task_id)
 
 #
 # ==================================================================================
@@ -40,8 +44,8 @@ if __name__ == "__main__":
         except:
             print 'Error in arguments'
 
-    data_task = Jd_Promo_Category_DataTask()
-    data_task.configTask(is_daily=True,interval_hours=24,sleep_time=2)
+    data_task = Jd_Comment_Stats_DataTask()
+    data_task.configTask(is_daily=True,interval_hours=24,sleep_time=0.2,group_num=50)
     data_task.doTask(M,N)
 
 

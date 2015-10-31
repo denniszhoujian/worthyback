@@ -31,6 +31,11 @@ def crawl_sku_comment_count(sku_list):
 def crawl_category_promo(category_id):
     rdict = jd_API.get_Promo_Category(category_id)
     dt = timeHelper.getNow()
+    if len(rdict)==0:
+        return {
+            'status':0,
+            'msg':'empty in return, category_id=%s' %category_id
+        }
     quan = json.dumps(rdict['quan'])
     ads = json.dumps(rdict['ads'])
     prom = json.dumps(rdict['prom'])
