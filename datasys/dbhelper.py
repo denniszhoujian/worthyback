@@ -8,7 +8,7 @@ from warnings import filterwarnings
 filterwarnings('ignore', category = MySQLdb.Warning)
 
 def getConnection():
-    dbdict = data_config.DATA_SYS_CONFIG
+    datadict = data_config.DATA_SYS_CONFIG
     conn = MySQLdb.connect(host=datadict['host'], user=datadict['user'], passwd=datadict['passwd'], db=datadict['db'], port=datadict['port'], charset='utf8')
     return conn
 
