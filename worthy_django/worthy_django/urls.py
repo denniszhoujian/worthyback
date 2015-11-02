@@ -1,0 +1,12 @@
+from django.conf.urls import include, url
+from django.contrib import admin
+
+urlpatterns = [
+    # Examples:
+    # url(r'^$', 'worthy_django.views.home', name='home'),
+    # url(r'^blog/', include('blog.urls')),
+
+    url(r'^admin/', include(admin.site.urls)),
+    url(r'^category_all/$', 'worthy.jsonserv.category_json.getCategoryListAll', name='category all'),
+
+]

@@ -204,7 +204,17 @@ def get_Promo_Category(category_id):
 def get_Promo_Sku(sku_id):
     # http://cd.jd.com/promotion/v2?skuId=1279827&area=1_72_2799_123&cat=670,729,7311199999
     api_url = 'http://cd.jd.com/promotion/v2?skuId=%s&area=1_72_2799_123&cat=670,729,7311199999' %sku_id
-    json_str = url_utils.getWebResponse(api_url,'gbk')
+    json_str = "{}"
+    try:
+        json_str = url_utils.getWebResponse(api_url,'gbk')
+    except:
+        try:
+            json_str = url_utils.getWebResponse(api_url,'gbk')
+        except:
+            try:
+                json_str = url_utils.getWebResponse(api_url)
+            except:
+                pass
     ret_map = {}
     #print json_str
     try:

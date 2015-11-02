@@ -22,30 +22,5 @@ import mylog
 # print html2
 #
 
+from service import test
 
-adict = {
-            "SkuId": 1279827,
-            "ProductId": 1279827,
-            "Score1Count": 261,
-            "Score2Count": 80,
-            "Score3Count": 299,
-            "Score4Count": 1211,
-            "Score5Count": 21239,
-            "ShowCount": 1541,
-            "CommentCount": 23090,
-            "AverageScore": 5,
-            "GoodCount": 22450,
-            "GoodRate": 0.973,
-            "GoodRateShow": 97,
-            "GoodRateStyle": 146,
-            "GeneralCount": 379,
-            "GeneralRate": 0.016,
-            "GeneralRateShow": 2,
-            "GeneralRateStyle": 2,
-            "PoorCount": 261,
-            "PoorRate": 0.011,
-            "PoorRateShow": 1,
-            "PoorRateStyle": 2
-        }
-
-print list(adict)

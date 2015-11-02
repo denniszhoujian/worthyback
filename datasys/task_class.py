@@ -133,6 +133,7 @@ class DataTask():
 
     def doTask(self,M=1,N=1):
         while True:
+            print 'start job - %s' %timeHelper.getNowLong()
             t1 = time.time()
             is_success = self.doTaskOnce(M,N)
             t2 = time.time()
