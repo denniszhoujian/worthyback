@@ -1,5 +1,5 @@
 __author__ = 'Dennis'
 
-from datasys import url_utils
+# uwsgi --http :8080 --chdir /Users/Dennis/PycharmProjects/worthyback/worthy_django --module django_wsgi --buffer-size=32768
+# uwsgi --http :8080 --chdir /Users/Dennis/PycharmProjects/myproj/jsonport --module django_wsgi --buffer-size=32768
 
-print url_utils.MAX_TRIES

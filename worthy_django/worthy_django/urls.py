@@ -7,6 +7,6 @@ urlpatterns = [
     # url(r'^blog/', include('blog.urls')),
 
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^category_all/$', 'worthy.jsonserv.category_json.getCategoryListAll', name='category all'),
+    url(r'^category/all/$', 'worthy.jsonserv.category_json.getCategoryListAll', name='category all'),
 
 ]

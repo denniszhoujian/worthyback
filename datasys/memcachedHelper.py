@@ -2,13 +2,12 @@
 import memcache
 import sys
 import urllib2
+import data_config
 
 reload(sys)
 sys.setdefaultencoding('utf8')
 
-#MEMCACHE_URL_LIST = ['192.168.31.100:11211']
-MEMCACHE_URL_LIST = ['127.0.0.1:11211']
-
+MEMCACHE_URL_LIST = data_config.MEMCACHE_ADDR_LIST
 # memcached -m 64 -p 11211 -u memcache -l 127.0.0.1 -d
 
 global __mc__
