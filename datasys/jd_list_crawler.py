@@ -16,9 +16,9 @@ sys.setdefaultencoding('utf8')
 SLEEP_TIME = 0.5
 
 def __get_category_page_url__(category_id, page_num=1):
-    # http://list.jd.com/list.html?cat=9987%2C830%2C863&delivery=1&page=1
+    # http://list.jd.com/list.html?cat=9987%2C653%2C655&delivery=1&page=1&stock=0
     category_id = '%s' %category_id
-    page_url = "http://list.jd.com/list.html?cat=%s&delivery=1&page=%s" % (category_id.replace('-','%2C'),page_num)
+    page_url = "http://list.jd.com/list.html?cat=%s&delivery=1&page=%s&stock=0" % (category_id.replace('-','%2C'),page_num)
     return page_url
 
 
