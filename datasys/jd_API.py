@@ -22,9 +22,16 @@ def __accumulative_call__(param_list,threshold,func_pointer):
     price_list = []
     for i in xrange(iters):
         remaining = len(sku_list) - i*threshold
+        # BUG FIX: break if remaining is 0
+        if remaining == 0:
+            break
+        # BUG FIX
         end = threshold
         if remaining < threshold:
             end = remaining
+        # print i*threshold
+        # print i*threshold+end
+        # print '%'*60
         list2 = sku_list[i*threshold:i*threshold+end]
         list3 = func_pointer(list2)
         price_list = price_list + list3
@@ -80,6 +87,8 @@ def getPrices_JD(sku_list):
     price_list = []
     for i in xrange(iters):
         remaining = len(sku_list) - i*100
+        if remaining==0:
+            break
         end = 100
         if remaining < 100:
             end = remaining
@@ -230,14 +239,59 @@ def get_Promo_Sku(sku_id):
     return ret_map
 
 
+# {
+#     "1856588": {
+#         "a": "33",
+#         "b": "1",
+#         "c": "-1",
+#         "l": "0"
+#     },
+#     "1861098": {
+#         "a": "33",
+#         "b": "1",
+#         "c": "-1",
+#         "l": "0"
+#     },
+# }
+# MAX SKU GROUP = 30
+#
+# a: 33有货，36预定，34无货
+# b: 未知
+# c: -1无信息，正数：还剩几件
+# l: 未知
+
+def _get_Stock_Status(sku_list):
+    # http://ss.3.cn/ss/areaStockState/mget?app=search_pc&ch=1&skuNum=1861098;1856588;1867038;1867670;1866550;1866973;1866564;1904606;1954504;1867014;1866686;1866577;1866958;1866661;1867024;1866945;2109985;2008714;2095246;2095250;2095272;2056957;2008804&area=1,2901,2906,0
+    sku_str_list = []
+    for sku in sku_list:
+        sku_str_list.append('%s' %sku)
+    sku_param = ';'.join(sku_str_list)
+    api_url = "http://ss.3.cn/ss/areaStockState/mget?app=search_pc&ch=1&skuNum=%s&area=1,2901,2906,0" %sku_param
+    # print api_url
+    ret_dict_str = url_utils.getWebResponse(api_url)
+    ret_dict = json.loads(ret_dict_str)
+    ret_list = []
+    for key in ret_dict:
+        ret_obj = ret_dict[key]
+        ret_obj['sku_id'] = key
+        ret_list.append(ret_obj)
+    return ret_list
+
+def get_Stock_Status(sku_list):
+    return __accumulative_call__(sku_list,30,_get_Stock_Status)
+
+
 if __name__ == "__main__":
     #print getPrices_JD([1279171,595936,1279827,1279171,595936,1279827])
-    # sql = 'select distinct sku_id from jd_item_dynamic limit 183'
-    # retrows = dbhelper.executeSqlRead2(sql)
-    # alist = []
-    # for row in retrows:
-    #     alist.append(row[0])
-    print get_Promo_Sku(1279171)
-    print getCommentCount_JD([1279171])
-
+    sql = 'select distinct sku_id from jd_item_dynamic limit 120'
+    retrows = dbhelper.executeSqlRead2(sql)
+    alist = []
+    for row in retrows:
+        alist.append(row[0])
+    # print get_Promo_Sku(1279171)
+    # print getCommentCount_JD([1279171])
+    # print get_Stock_Status([1861098,1856588,1867038,1867670,1866550,1866973,1866564,1904606,1954504,1867014,1866686,1866577,1866958,1866661,1867024,1866945,2109985,2008714,2095246,2095250,2095272,2056957,2008804])
+    dd = get_Stock_Status(alist)
+    print len(dd)
+    print json.dumps(dd)
 

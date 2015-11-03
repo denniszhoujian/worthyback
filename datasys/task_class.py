@@ -116,7 +116,7 @@ class DataTask():
                     logging.info('return: %s' %ret)
                     if ret['status'] == 0:
                         self.__record_task_complete__(group_task_list)
-                        logging.info('recorded task complete: %s' %group_task_list)
+                        #logging.info('recorded task complete: %s' %group_task_list)
                         is_task_success = 1
                     else:
                         logging.error('TASK EXECUTION FAILED. TASK_ID = %s' %group_task_list)
