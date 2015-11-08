@@ -16,6 +16,13 @@ class MyEncoder(json.JSONEncoder):
         else:
             return json.JSONEncoder.default(self, obj)
 
+def responseBadRequest(reason="unknown"):
+    resp = {
+        "status": -1,
+        "msg": "bad-request",
+        "reason": reason
+    }
+    return HttpResponse(resp, content_type="application/json")
 
 def getJSONPStr(request,rdict):
     #jtext = json.dumps(rdict)
