@@ -60,6 +60,7 @@ class DataTask():
         catlist = []
         for row in retrows:
             catlist.append(row['task_id'])
+        logging.info("Task already done: %s" %len(catlist))
         return catlist
 
     def __remove_completed_tasks__(self,task_list):
@@ -68,11 +69,15 @@ class DataTask():
 
     def __load_thread_tasks__(self,M,N):
         all_tasks = self.__load_all_tasks__()
+        logging.info("All tasks: %s" %len(all_tasks))
         dedup_tasks = self.__remove_completed_tasks__(all_tasks)
         thread_tasks = []
         for i in xrange(len(dedup_tasks)):
             if i % N == (M-1):
                 thread_tasks.append(dedup_tasks[i])
+        logging.info("Remaining tasks: %s" %len(dedup_tasks))
+        logging.info("Thread tasks: %s" %len(thread_tasks))
+        logging.info("Tasks completed: %s%%" %(100 - len(dedup_tasks)/len(all_tasks)*100))
         return thread_tasks
 
     def doTaskOnce(self,M=1,N=1):
