@@ -2,9 +2,9 @@
  <socket>127.0.0.1:9001</socket>
  <listen>80</listen>
  <master>true</master>
- <pythonpath>/Users/Dennis/PycharmProjects/worthyback/worthy_django</pythonpath>
+ <pythonpath>/home/ubuntu/web/worthyback/worthy_django</pythonpath>
  <module>django_uwsgi</module>
- <wsgi-file>/Users/Dennis/PycharmProjects/worthyback/worthy_django/worthy_django/wsgi.py</wsgi-file>
+ <wsgi-file>/home/ubuntu/web/worthyback/worthy_django/worthy_django/wsgi.py</wsgi-file>
  <processes>4</processes>
  <logdate>true</logdate>
  <daemonize>/tmp/uwsgi.log</daemonize>
