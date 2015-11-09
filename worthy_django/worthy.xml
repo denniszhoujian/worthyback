@@ -5,7 +5,7 @@
  <pythonpath>/home/ubuntu/web/worthyback</pythonpath>
  <module>django_uwsgi</module>
  <wsgi-file>/home/ubuntu/web/worthyback/worthy_django/worthy_django/wsgi.py</wsgi-file>
- <processes>4</processes>
+ <processes>1</processes>
  <logdate>true</logdate>
  <daemonize>/tmp/uwsgi.log</daemonize>
 </uwsgi>
