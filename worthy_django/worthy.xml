@@ -1,5 +1,5 @@
 <uwsgi>
- <socket>127.0.0.1:9001</socket>
+ <socket>127.0.0.1:9010</socket>
  <listen>80</listen>
  <master>true</master>
  <pythonpath>/home/ubuntu/web/worthyback/worthy_django</pythonpath>
