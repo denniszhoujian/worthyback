@@ -22,5 +22,5 @@ import mylog
 # print html2
 #
 
-from service import test
 
+print "%.0f%%" %(19839.0/228009.0*100.0)

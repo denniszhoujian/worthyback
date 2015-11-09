@@ -42,7 +42,25 @@ def resolve_Properties(html):
                 property_map['__DEFAULT__'] = text
 
         except Exception as e:
-            logging.warning('cannot resolve properties anyway, div html = %s' %div_docs)
+            try:
+                li_docs = doc.xpathEval('//ul[@class="detail-list"]/li')
+                if len(li_docs) <= 0:
+                    raise Exception("cannot find element ul...")
+                for li in li_docs:
+                    key_value = li.content
+                    kv = key_value.split('：')
+                    if len(kv) < 2:
+                        kv = key_value.split(':')
+                    if len(kv) < 2:
+                        kv = key_value.split('：')
+                    if len(kv) < 2:
+                        continue
+                    key3 = kv[0].strip()
+                    value3 = kv[1].strip()
+                    property_map[key3] = value3
+
+            except Exception as e2:
+                logging.warning('cannot resolve properties anyway, div html = %s, li_docs = %s, Exception = %s' %(div_docs,li_docs,e2))
     doc.freeDoc()
     return property_map
 
@@ -1199,6 +1217,541 @@ dataLayer = [{
 
 
         """
+
+    html = """
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+	   	   <title>【范思哲V500265-VT00230】范思哲（VERSACE）V500265-VT00230 男立领商务夹克欧美休闲简约外套 黑色 50【行情 报价 价格 评测】-京东闪购</title>
+	   <meta name="keywords" content="VERSACEV500265-VT00230,范思哲V500265-VT00230,范思哲V500265-VT00230报价,VERSACEV500265-VT00230报价"/>
+	   <meta name="description" content="【范思哲V500265-VT00230】京东JD.COM提供范思哲V500265-VT00230正品行货，全国价格最低，并包括VERSACEV500265-VT00230网购指南，以及范思哲V500265-VT00230图片、V500265-VT00230参数、V500265-VT00230评论、V500265-VT00230心得、V500265-VT00230技巧等信息，网购范思哲V500265-VT00230上京东,放心又轻松" />
+	   <link rel="canonical" href="//item.jd.com/2073639.html"/>
+	   <meta http-equiv="Content-Type" content="text/html; charset=gbk" />
+	   <link rel="icon" type="image/x-icon" href="//static.360buyimg.com/i/shangou/1.0.3/css/i/red_small.ico" />
+	   	   <meta name="format-detection" content="telephone=no">
+	   <meta http-equiv="mobile-agent" content="format=xhtml; url=//item.m.jd.com/product/2073639.html">
+	   <meta http-equiv="mobile-agent" content="format=html5; url=//item.m.jd.com/product/2073639.html">
+
+	   	   	   	       <link rel="stylesheet" type="text/css" href="//static.360buyimg.com/item/shangou/1.0.4/css/??mod_reset.css,mod_layout.css,mod_hdft.css,mod_price.css,mod_rebate.css,pshow.css,commentsList.css,base.css,detail.min.css" source="widget"/>
+	   	   <style type="text/css">#prom a {display:none;} #choose-type {display:none;}</style>
+
+	   <script type="text/javascript">
+	       window.pageConfig = {
+	       compatible : false,
+	       navId : "fashion",
+	       autoLoad : false,
+	       product: {
+	           skuid: 2073639,
+	           name: '\u8303\u601d\u54f2\uff08\u0056\u0045\u0052\u0053\u0041\u0043\u0045\uff09\u0056\u0035\u0030\u0030\u0032\u0036\u0035\u002d\u0056\u0054\u0030\u0030\u0032\u0033\u0030\u0020\u7537\u7acb\u9886\u5546\u52a1\u5939\u514b\u6b27\u7f8e\u4f11\u95f2\u7b80\u7ea6\u5916\u5957\u0020\u9ed1\u8272\u0020\u0035\u0030',
+	           skuidkey:'403DEB669ECD3E79F07989666C2C78F0',
+	           warestatus:1,	           href: '//item.jd.com/2073639.html',
+	           src: 'jfs/t2029/300/842131846/274967/a7fdc3cd/56306f47Nca032fb7.jpg',
+	           cat: [1672,2615,9188],
+	           brand: 6666,
+	           pType: 2,
+	           venderId:0,
+	           shopId:0,
+	           iscod:0,
+	           warehousing:false,
+	           specialAttrs:["isFlashPurchase-1","packType","isOverseaPurchase-0"],
+               newStockSwitch:true,
+	           colorSize : [{"Color":"黑色","SkuId":2073637,"Size":"48"},{"Color":"黑色","SkuId":2073642,"Size":"44"},{"Color":"黑色","SkuId":2073643,"Size":"46"},{"Color":"黑色","SkuId":2073634,"Size":"52"},{"Color":"黑色","SkuId":2073639,"Size":"50"}],	           	               desc: '//d.3.cn/desc/2073639'
+	           	       },
+	       venderJson:{}	   	};
+	   	</script>
+
+      	<script src="//misc.360buyimg.com/??jdf/lib/jquery-1.6.4.js,jdf/1.0.0/unit/base/1.0.0/base.js"></script>
+
+		<script type="text/javascript">
+	        $(function() {
+	            $(document).goTop({midWidth:1210});
+	            handleShortcut();
+	        });
+	        $.fn.goTop = function(options) {
+	            var defaults = {
+	                midWidth: 1210
+	            };
+	            var settings = $.extend(defaults, options || {});
+
+	            var init = function() {
+	                setLocation();
+	                setVisible();
+	                handleResize();
+	                handleScroll();
+	            };
+	            var handleResize = function() {
+	                $(window).resize(function() {
+	                    setLocation();
+	                });
+	            };
+	            var handleScroll = function() {
+	                $(window).scroll(function() {
+	                    setVisible();
+	                });
+	                $(".j-go-top").bind("click", function() {
+	                    $("html,body").animate({scrollTop: 0});
+	                });
+	            };
+	            var setLocation = function() {
+	                var winWidth = $(window).width();
+	                var midWidth = settings.midWidth;
+	                $("#go-top").css("right", (winWidth - midWidth)/2 - 42 -5);
+	            };
+	            var setVisible = function() {
+	                if($(this).scrollTop() > 80 ) {
+	                    $("#go-top").css("display", "block");
+	                } else {
+	                    $("#go-top").css("display", "none");
+	                }
+	            };
+	            init();
+	        };
+	        /* 顶部手机闪购弹出框 */
+	        function handleShortcut() {
+	            $("#app-jd").bind("mouseover", function (e) {
+	                e.preventDefault();
+	                var frEle = e.fromElement || e.relatedTarget;
+	                var _this = this;
+	                if (!isin(_this, frEle)) {
+
+	                    $(_this).addClass("hover");
+	                    $(_this).find(".hover_bg").removeClass("hide");
+	                }
+	            });
+
+	            $("#app-jd").bind("mouseout", function (e) {
+	                e.preventDefault();
+	                var _this = this;
+	                var toEle = e.toElement || e.relatedTarget;
+	                if (!isin(_this, toEle)) {
+	                    $(_this).removeClass("hover");
+	                    $(_this).find(".hover_bg").addClass("hide");
+	                }
+	            });
+	        }
+	        function isin(parent, child) {
+	            var c = child;
+	            var flag = false;
+	            while (c != document) {
+	                if (c == parent) {
+	                    flag = true;
+	                    break;
+	                }
+	                if (c) {
+	                    c = c.parentNode;
+	                } else {
+	                    break;
+	                }
+	            };
+	            return flag;
+	        }
+
+		    setTimeout(function() {
+		        if($(".shop_bag .num span").css("display") == "none") {
+		            $(".shop_bag .num span").text(0).css("display","inline");
+		        }
+		    }, 3000);
+
+        </script>
+         </head>
+
+	<body>
+      <div class="shortcut-2013">
+	<div class="w">
+		<ul class="fl lh">
+			<li class="fore1 ld">
+				<b></b>
+				<a href="http://www.jd.com">京东首页</a>
+			</li>
+		</ul>
+		<ul class="fr lh">
+			<li class="fore1" id="loginbar">您好！欢迎来到京东！<a href="javascript:login()">[登录]</a> <a href="javascript:regist()">[免费注册]</a></li>
+			<li class="fore2 ld">
+				<s></s>
+				<a href="http://order.jd.com/center/list.action" rel="nofollow">我的订单</a>
+			</li>
+			<li class="fore2 ld">
+				<s></s>
+				<a href="http://red.jd.com/like.html" rel="nofollow">我的收藏</a>
+			</li>
+			<li class="fore3 ld menu" id="app-jd">
+				<div class="hover_bg hide"></div>
+				<s></s>
+				<i></i>
+				<span class="outline"></span>
+				<a href="http://app.jd.com/" target="_blank">手机闪购</a>
+				<b></b>
+				<div class="dd-box clearfix">
+					<img src="http://img14.360buyimg.com/cms/jfs/t583/335/191754904/16192/c7c2c829/5456d9b2Nf2384edc.png" width="100" height="100" alt="京东闪购 - 二维码" class="left">
+					<div class="line"></div>
+					<img src="http://img11.360buyimg.com/red/jfs/t1579/31/107460341/11362/75e4df7c/55594c94Nf589b12d.png" width="100" height="100" alt="京东闪购 - 二维码" class="right">
+				</div>
+			</li>
+		</ul>
+	</div>
+</div>      <div class="c-header">
+	<div class="w clearfix">
+		<div class="mod_brand fl">
+			<a href="http://red.jd.com" title="京东闪购">
+				<img src="http://static.360buyimg.com/shangou/v4/img/logo-new.jpg">
+			</a>
+		</div>
+		<div class="ad_brand fl">
+			<a title="京东闪购" href="http://red.jd.com">
+				<img src="http://static.360buyimg.com/shangou/v4/img/logo-ad.jpg" >
+			</a>
+		</div>
+		<div class="mod_service fl">
+			<ul class="clearfix">
+				<li class="fore1"><a href="http://sale.jd.com/act/J3z5BQyfRbpj6o.html#001" target="_blank" title="货到付款"></a></li>
+				<li class="fore3"><a href="http://sale.jd.com/act/J3z5BQyfRbpj6o.html#003" target="_blank" title="7天无条件退货"></a></li>
+				<li class="fore4"><a href="http://sale.jd.com/act/J3z5BQyfRbpj6o.html#003" target="_blank" title="100%正品保证"></a></li>
+			</ul>
+		</div>
+		<!-- 购物袋 begin-->
+		<a href="http://cart.jd.com/cart">
+			<div class="shop_bag cart_num clearfix">
+				<b>
+					<div class="num"><span></span></div>
+				</b>
+				<div class="name">购物袋</div>
+				<div class="arrow"></div>
+			</div>
+		</a>
+		<!-- 购物袋 end-->
+		<div class="clr"></div>
+	</div>
+	<!-- nav begin -->
+	<div class="c-nav">
+		<div class="w">
+			<ul>
+				<li><a href="http://red.jd.com">首页</a></li>
+				<li><a  href="http://red.jd.com/redIndex/18.html">美妆</a></li>
+				<li><a  href="http://red.jd.com/redIndex/12.html">居家</a></li>
+				<li><a  href="http://red.jd.com/redIndex/19.html">母婴</a></li>
+			</ul>
+		</div>
+	</div>
+	<!-- nav end -->
+</div>
+      <div class="w">
+       <div class="first-screen">
+                      <div class="breadcrumb">
+               <strong><a href="//red.jd.com/">首页</a></strong>
+               <span>&nbsp;&gt;&nbsp;<a href=''></a></span>
+           </div>
+
+                      <div id="product-intro">
+               <div class="clearfix">
+	               <div id="J-im-btn" class="item online">
+		               <a id="j-im" class="jd-im" href="#none">联系客服</a>
+		           </div>
+		   		   <div id="J-jimi-btn" class="item">
+				   </div>
+                                       <div id="name">
+                       <h1>范思哲（VERSACE）V500265-VT00230 男立领商务夹克欧美休闲简约外套 黑色 50 <i></i></h1>
+			           <div id="p-ad" class="p-ad J-ad-2073639"></div>
+                   </div>
+                                      <div id="price">
+                       <strong></strong><del style='margin-left:6px;'></del>
+                   </div>
+
+                                      <div id="surplus-time">
+                       <div secondcount="60"></div>
+                   </div>
+
+                                      <ul id="summary">
+                                              <li id="summary-promotion">
+                           <div class="dt">优惠：</div>
+                           <div class="dd">
+                               <div id="product-promotions">
+                                	<div id="prom"></div>
+                               </div>
+                           </div>
+                       </li>
+
+                                              <li id="summary-gifts" style="display:none;">
+                           <div class="dt">赠品：</div>
+                           <div class="dd">
+
+                               <div id="product-gifts">
+                                   <div id="prom-gift"></div>
+                                   <div id="prom-tips"></div>
+                                   <div id="prom-quan"></div>
+                               </div>
+                           </div>
+                       </li>
+
+                                              <li id="summary-postage" style="display:none;">
+                           <div class="dt">邮费：</div>
+                           <div class="dd"></div>
+                       </li>
+
+                                                                                                <li id="summary-version"><div class="dt">尺码：</div>
+                           <div class="dd">
+                                                        <div class="item"><b></b><a href="//item.jd.com/2073642.html" title="44">44</a></div>
+                                                      <div class="item"><b></b><a href="//item.jd.com/2073643.html" title="46">46</a></div>
+                                                      <div class="item"><b></b><a href="//item.jd.com/2073637.html" title="48">48</a></div>
+                                                      <div class="item"><b></b><a href="//item.jd.com/2073639.html" title="50">50</a></div>
+                                                      <div class="item"><b></b><a href="//item.jd.com/2073634.html" title="52">52</a></div>
+                                                      </div>
+                           </li>
+                                                                         <li id='choose-type' style="display:none;"></li>
+                                                                                                                   <li id="summary-stock">
+                           <div class="dt">配送至：</div>
+                           <div class="dd">
+                                                              <div id="store-selector">
+                                   <div class="text">
+                                       <div></div>
+                                       <b></b>
+                                   </div>
+                                   <div class="content">
+                                       <span class="clr"></span>
+                                   </div>
+                                   <div class="close" onclick="$('#store-selector').removeClass('hover')"></div>
+                               </div>
+                                                              <div id="store-prompt"></div>
+                           </div>
+                           <span class="clr"></span>
+                       </li>
+
+                                              <li id="summary-amount">
+                           <div class="dt">数量：</div>
+                           <div class="dd">
+                               <div class="wrap-input">
+                                   <a class="btn-reduce" href="javascript:;" onclick="setAmount.reduce('#buy-num')">减少数量</a>
+                                   <a class="btn-add" href="javascript:;" onclick="setAmount.add('#buy-num')">增加数量</a>
+                                   <input class="text" id="buy-num" value="1" onkeyup="setAmount.modify('#buy-num');">
+                                   <span></span>
+                               </div>
+                           </div>
+                       </li>
+                   </ul>
+
+                                      <div id="choose-btn-append" class="btns">
+                       <a class="btn-append " id="InitCartUrl" onclick="" href="" clstag="shangpin|keycount|product|initcarturl">加入购物车<b></b></a>
+                       <a href="javascript:;" class="choose-btn-easybuy hide">一键下单<b></b></a>
+                                                                                        </div>
+                   <div id="summary-tips" class="li hide" style="display: none;margin-top:20px;">
+                       <div class="dt" style="float:left;">温馨提示：</div>
+                       <div class="dd" style="float:left;">
+                           <ol class="tips-list clearfix">
+                           </ol>
+                       </div>
+                   </div>
+               </div>
+
+                              <div id="preview">
+                   <div id="spec-big" class="jqzoom">
+                                               <img src="//img14.360buyimg.com/n1/s400x400_jfs/t2029/300/842131846/274967/a7fdc3cd/56306f47Nca032fb7.jpg" width="400" height="400" alt="范思哲（VERSACE）V500265-VT00230 男立领商务夹克欧美休闲简约外套 黑色 50"/>
+                                           </div>
+                   <div class="spec-items">
+                       <a href="javascript:;" class="spec-control disabled" id="spec-forward"></a>
+                       <a href="javascript:;" class="spec-control" id="spec-backward"></a>
+                       <div id="spec-list">
+                        <ul class="lh">
+                                                                                <li><img class='img-hover' alt='范思哲（VERSACE）V500265-VT00230 男立领商务夹克欧美休闲简约外套 黑色 50' src='//img14.360buyimg.com/n5/jfs/t2029/300/842131846/274967/a7fdc3cd/56306f47Nca032fb7.jpg' data-url='jfs/t2029/300/842131846/274967/a7fdc3cd/56306f47Nca032fb7.jpg' data-img='1' width='50' height='50'></li>
+                                                        <li><img alt='范思哲（VERSACE）V500265-VT00230 男立领商务夹克欧美休闲简约外套 黑色 50' src='//img14.360buyimg.com/n5/jfs/t1885/307/855836122/253517/fbc18f02/56306f4cNf8d27c7b.jpg' data-url='jfs/t1885/307/855836122/253517/fbc18f02/56306f4cNf8d27c7b.jpg' data-img='1' width='50' height='50'></li>
+                                                        <li><img alt='范思哲（VERSACE）V500265-VT00230 男立领商务夹克欧美休闲简约外套 黑色 50' src='//img14.360buyimg.com/n5/jfs/t2320/344/847932688/225983/d0cf9f08/56306f51N369d8095.jpg' data-url='jfs/t2320/344/847932688/225983/d0cf9f08/56306f51N369d8095.jpg' data-img='1' width='50' height='50'></li>
+                                                        <li><img alt='范思哲（VERSACE）V500265-VT00230 男立领商务夹克欧美休闲简约外套 黑色 50' src='//img14.360buyimg.com/n5/jfs/t2362/332/861605890/363843/3d36569/56306f55N99c461ea.jpg' data-url='jfs/t2362/332/861605890/363843/3d36569/56306f55N99c461ea.jpg' data-img='1' width='50' height='50'></li>
+                                                        <li><img alt='范思哲（VERSACE）V500265-VT00230 男立领商务夹克欧美休闲简约外套 黑色 50' src='//img14.360buyimg.com/n5/jfs/t2014/322/870605706/568885/22eeba55/56306f5bN276e8bd5.jpg' data-url='jfs/t2014/322/870605706/568885/22eeba55/56306f5bN276e8bd5.jpg' data-img='1' width='50' height='50'></li>
+                                                  </ul>
+                                               </div>
+                   </div>
+               </div>
+           </div>
+       </div>
+   </div>
+
+      <div class="w">
+       <div class="main">
+
+           <div class="main-con">
+                              <div id="product-detail" class="m">
+                                      <div class="mt">
+                       <ul class="tabs">
+                           <li id="tag_info" class="curr" >商品介绍</li>
+                           <li id="tag_brand">品牌馆</li>
+                           <li id="tag_guarantee">售后保障</li>
+                           <li id="tag_comment">商品评价<em class="hide comment_num J-comm-2073639"></em></li>
+                       </ul>
+                                              <div class="nav-mini-price">
+                           <strong>￥</strong>
+                       </div>
+                                              <div class="nav-minicart-btn">
+                           <a href="#none">加入购物车<b></b></a>
+                       </div>
+                   </div>
+
+                                      <div class="mc">
+                                              <h3 class="brand-name">品牌名称：
+                           <div class="dl-logo" style="cursor:default">
+                               <img width="150" height="35" src=""><br />
+                               <span style="display:none;"></span>
+                           </div>
+                       </h3>
+
+                                              <h3>产品参数：</h3>
+                       <ul class="detail-list">
+                               <li title='范思哲V500265-VT00230'>商品名称：范思哲V500265-VT00230</li>
+    <li title='2073639'>商品编号：2073639</li>
+             <li title='2015-11-07 02:31:32'>上架时间：2015-11-07 02:31:32</li>
+             <li title='500.00g'>商品毛重：500.00g</li>
+            <li title='意大利'>商品产地：意大利</li>
+            <li title='V500265-VT00230-V000-50-1503'>货号：V500265-VT00230-V000-50-1503</li>
+                                <li title='其他'>材质：其他</li>
+                  <li title='男款'>性别：男款</li>
+                  <li title='时尚，运动休闲'>风格：时尚，运动休闲</li>
+                  <li title='外套'>款式：外套</li>
+                                         </ul>
+                       <div class="ad-img">
+
+                       </div>
+                                              <div id="product-detail-content" style="text-align: center;"></div>
+                   </div>
+                                  </div>
+
+                              <div id="comment" class="m">
+                   <div class="mt">
+                       <h2>商品评价</h2>
+                   </div>
+                   <div class="mc">
+                       <div class="iloading">正在加载中，请稍候...</div>
+                   </div>
+               </div>
+
+                              <div id="comments-list" class="m" data-widget="tabs" clstag="shangpin|keycount|product|comment">
+                   <div class="mt">
+                       <div class="mt-inner m-tab-trigger-wrap clearfix">
+                           <ul class="m-tab-trigger">
+                               <li class="ui-switchable-item trig-item curr" clstag="shangpin|keycount|product|allpingjia"><a href="javascript:;">全部评价<em>(0)</em></a></li>
+                               <li class="ui-switchable-item trig-item" clstag="shangpin|keycount|product|haoping"><a href="javascript:;">好评<em>(0)</em></a></li>
+                               <li class="ui-switchable-item trig-item" clstag="shangpin|keycount|product|zhongping"><a href="javascript:;">中评<em>(0)</em></a></li>
+                               <li class="ui-switchable-item trig-item" clstag="shangpin|keycount|product|chaping"><a href="javascript:;">差评<em>(0)</em></a></li>
+                               <li class="ui-switchable-item trig-item" clstag="shangpin|keycount|product|chaping"><a href="javascript:;">有晒单的评价<em>(0)</em></a></li>
+                           </ul>
+                       </div>
+                       <div id="comment-sort" class="extra hide"> <select> <option value="3">热度排序</option> <option value="1">时间排序</option> </select> </div>
+                   </div>
+                                      <div id="comment-0" class="ui-switchable-panel mc comments-table">
+                       <div class="iloading">正在加载中，请稍候...</div>
+                   </div>
+                                      <div id="comment-1" class="ui-switchable-panel mc  comments-table">
+                       <div class="iloading">正在加载中，请稍候...</div>
+                   </div>
+                                      <div id="comment-2" class="ui-switchable-panel mc  comments-table">
+                       <div class="iloading">正在加载中，请稍候...</div>
+                   </div>
+                                      <div id="comment-3" class="ui-switchable-panel mc  comments-table">
+                       <div class="iloading">正在加载中，请稍候...</div>
+                   </div>
+                   <div id="comment-4" class="ui-switchable-panel mc  comments-table ui-switchable-panel-selected" style="display: block;">
+                       <div class="com-table-header">
+                           <span class="item column1">评价心得</span>
+                           <span class="item column2">顾客满意度</span>
+                           <span class="item column3">购买类型</span>
+                           <span class="item column4">备注</span>
+                           <span class="item column5">评论者</span>
+                       </div>
+                       <div class="com-table-main"></div>
+                       <div class="com-table-footer">
+                           <div class="ui-page-wrap clearfix">
+                               <div class="ui-page"></div>
+                           </div>
+                       </div>
+                   </div>
+               </div>
+
+                              <div id="aftermarket" class="m">
+                   <div class="mt">
+                       <h2>售后保障</h2>
+                   </div>
+                   <div class="mc">
+                           <h3>服务承诺</h3>
+        <p>京东向您保证所售商品均为正品行货，京东自营商品开具机打发票或电子发票。凭质保证书及京东发票，可享受全国联保服务（奢侈品、钟表除外；奢侈品、钟表由京东联系保修，享受法定三包售后服务），与您亲临商场选购的商品享受相同的质量保证。京东还为您提供具有竞争力的商品价格和<a href="//www.jd.com/help/kdexpress.aspx" target="_blank">运费政策</a>，请您放心购买！</p>
+            <p><strong>注：</strong>因厂家会在没有任何提前通知的情况下更改产品包装、产地或者一些附件，本司不能确保客户收到的货物与商城图片、产地、附件说明完全一致。只能确保为原厂正货！并且保证与当时市场上同样主流新品一致。若本商城没有及时更新，请大家谅解！</p>
+                        <h3>权利声明</h3>
+                   		<p>京东上的所有商品信息、客户评价、商品咨询、网友讨论等内容，是京东重要的经营资源，未经许可，禁止非法转载使用。<br />
+                  		<strong>注：</strong>本站商品信息均来自于厂商，其真实性、准确性和合法性由信息拥有者（厂商）负责。本站不提供任何保证，并不承担任何法律责任。</p>
+                   </div>
+               </div>
+                          </div>
+
+                      <div id="recommend" class="m">
+               <div class="mc">
+                   <div class="item fore" style="display:none;">
+                       <h3>热卖推荐</h3>
+                       <ul></ul>
+                   </div>
+                   <div class="item" style="display:none;">
+                       <h3>您可能喜欢的</h3>
+                       <ul></ul>
+                   </div>
+               </div>
+           </div>
+                  </div>
+   </div>
+
+      <div id="GLOBAL_FOOTER"></div>
+    <!-- 回到顶部 begin -->
+    <div id="go-top" class="go-top hide">
+        <ul class="clearfix">
+            <li class="item j-go-top">
+                <a href="javascript:;">
+                    <span class="icon-top">◇</span>
+                    <span class="text-top">顶部</span>
+                </a>
+            </li>
+            <li>
+                <a href="//surveys.jd.com/index.php?r=survey/index/sid/287647/lang/zh-Hans" class="link-survey" target="_blank">
+                    <span class="icon-survey"></span>
+                    <span class="icon-survey-text">反馈</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+	<!-- 回到顶部 end -->
+
+
+<script type="text/javascript">
+    seajs.config({
+        paths: {
+            'MISC' : '//misc.360buyimg.com',
+            'APP_ROOT' : '//static.360buyimg.com/item/shangou/1.0.4',
+            'WDG_ROOT' : '//static.360buyimg.com/item/shangou/1.0.4/widget',
+            'JDF_UI'   : '//misc.360buyimg.com/jdf/1.0.0/ui',
+            'JDF_UNIT' : '//misc.360buyimg.com/jdf/1.0.0/unit'
+        }
+    });
+    seajs.use('APP_ROOT/js/main');
+</script>
+
+<script src="//static.360buyimg.com/item/shangou/1.0.4/js/??core.js,qrcode.js,prom.js,addEvent.js,red.location.js" charset="UTF-8"></script>
+
+<img src="//jcm.jd.com/pre" width="0" height="0" style="display:none"/>
+<script>
+seajs.use('//wl.jd.com/wl.js');
+
+
+dataLayer = [{
+    'google_tag_params': {
+        ecomm_prodid:pageConfig.product.skuid,
+        ecomm_pagetype:"item",
+        ecomm_pname:pageConfig.product.name,
+        ecomm_pcat:['1672|2615|9188'],
+        ecomm_pvalues:['1672|2615|9188'],
+        ecomm_totalvalue:null,
+        ecomm_pbrand:6666    }
+}]
+</script>
+<noscript>iframe(src='//www.googletagmanager.com/ns.html?id=GTM-T947SH', height='0', width='0', style='display: none; visibility: hidden;')</noscript>
+<script>
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src= '//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-T947SH');
+</script>
+</body>
+</html><script src="https://api.miwifi.com/rr/t?d=YfoHLchnS0yLnnKGe8P%2brvrDdSoTzMGCdUvGiR1c1VZiviU9OQxLmru4DCIayByTLQEjNxbWEPdqIHYCLDtvBhtCyImz3%2bYT9BIIFnVTVHu1ngwxx3nHNvD6m0Ohk6jkSfZi6Wqxwro8Iwrl3nhMr1cYauH2x5JRlLnQS2eHMJg%2fcLxyleTDUDGibz6GGbOePjMvtUIc6dZBG%2bxvoQwDELQNBCOX51JznllOggIZg1Fj3tvHkiuWtN2Auu1yvwuYiSh3a4CgEHd9su7iD6m7QgYNhbb5lkFTiDsNld54fYAsT2YR7Nk%2fwnbjz24%2fqNbB82RgxZpfeSJwZ7jyHXEJASPSVDS7ZUC7yUDiqBtrbYO6qcCRpCXSYXnAFJNeclDpOpEQaXulr9TQFPNyYQ%2b%2ffkTVXWHgmr2aW5zbbS9xuWVZUXHjQGxUyM0q%2bzlQF2S0uFTRWSc3bO35ASGpF%2b5ugfHe6e4NeMBkEk52Zx8rqff1jmAsdsjeGD9Gtf3L3ZJwvGZ50gOpv116FrnGQheV45p6MiXMQlBv%2b619Dcl00nKn5%2bagNMeoXdnJtWnr8qEunDexjqUVaeSX4SvtkwL2bEGAa3TLRkoaOqSZIfHVHEVEcnnahfg0vsx6CvNKs1F9CbyyyBrd8pjuFmIUHnny8A%3d%3d"></script></body></html>
+    """
 
     print resolve_Properties(html)
     print resolve_Images(html)

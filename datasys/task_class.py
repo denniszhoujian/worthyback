@@ -26,6 +26,8 @@ class DataTask():
     interval_hours = 24
     SLEEP_TIME = 0.5
     group_num = 1
+    num_all = 1
+    num_remaining = 0
 
     def __init__(self):
         self.job_name = self.__class__
@@ -40,6 +42,12 @@ class DataTask():
         self.SLEEP_TIME = sleep_time
         self.group_num=group_num
 
+    def __make_string_array__ (self, plist):
+        vlist = []
+        for item in plist:
+            vlist.append("%s" %item)
+        return vlist
+
     def __record_task_complete__(self, task_list):
         vlist = []
         ut = timeHelper.getNowLong()
@@ -52,32 +60,51 @@ class DataTask():
 
     def __get_task_already_done__(self):
         if self.is_daily:
-            sql = 'select task_id from task_status where job_name="%s" and update_time>="%s 0:00:00"' %(self.job_name,timeHelper.getNow())
+            sql = 'select task_id from task_status where job_name="%s" and update_time>="%s 0:00:00" group by task_id' %(self.job_name,timeHelper.getNow())
         else:
             stime = timeHelper.getTimeAheadOfNowHours(self.interval_hours)
-            sql = 'select task_id from task_status where job_name="%s" and update_time>="%s 0:00:00"' %(self.job_name,stime)
+            sql = 'select task_id from task_status where job_name="%s" and update_time>="%s 0:00:00" group by task_id' %(self.job_name,stime)
         retrows = dbhelper.executeSqlRead(sql)
         catlist = []
         for row in retrows:
-            catlist.append(row['task_id'])
+            catlist.append("%s" %row['task_id'])
         logging.info("Task already done: %s" %len(catlist))
+        print("Task already done: %s" %len(catlist))
         return catlist
 
     def __remove_completed_tasks__(self,task_list):
         done_list = self.__get_task_already_done__()
-        return list(set(task_list)-set(done_list))
+        done_list = self.__make_string_array__(done_list)
+        # print len(done_list)
+        # print len(set(done_list))
+        # print len(set(task_list))
+        ret = list(set(task_list) - set(done_list))
+        # print len(ret)
+        return ret
 
     def __load_thread_tasks__(self,M,N):
         all_tasks = self.__load_all_tasks__()
+        all_tasks = self.__make_string_array__(all_tasks)
+        self.num_all = len(all_tasks)*1.0 + 0.00001
         logging.info("All tasks: %s" %len(all_tasks))
+        print("All tasks: %s" %len(all_tasks))
+
         dedup_tasks = self.__remove_completed_tasks__(all_tasks)
+        self.num_remaining = len(dedup_tasks)*1.0
         thread_tasks = []
         for i in xrange(len(dedup_tasks)):
             if i % N == (M-1):
                 thread_tasks.append(dedup_tasks[i])
+
         logging.info("Remaining tasks: %s" %len(dedup_tasks))
         logging.info("Thread tasks: %s" %len(thread_tasks))
-        logging.info("Tasks completed: %s%%" %(100 - len(dedup_tasks)/len(all_tasks)*100))
+        logging.info("Tasks completed: %.0f%%" %((self.num_all-self.num_remaining)/self.num_all*100.0)  )
+
+        print("Remaining tasks: %s" %len(dedup_tasks))
+        print("Thread tasks: %s" %len(thread_tasks))
+        print("Tasks completed: %.0f%%" %((self.num_all-self.num_remaining)/self.num_all*100.0)  )
+        print("="*80)
+
         return thread_tasks
 
     def doTaskOnce(self,M=1,N=1):
@@ -117,8 +144,9 @@ class DataTask():
                         ret = self.__task_order__(cat_id)
                     else:
                         ret = self.__task_order__(group_task_list)
-                    time.sleep(self.SLEEP_TIME)
+
                     logging.info('return: %s' %ret)
+
                     if ret['status'] == 0:
                         self.__record_task_complete__(group_task_list)
                         #logging.info('recorded task complete: %s' %group_task_list)
@@ -126,6 +154,10 @@ class DataTask():
                     else:
                         logging.error('TASK EXECUTION FAILED. TASK_ID = %s' %group_task_list)
                         is_task_success = 0
+
+                    self.num_remaining -= 1.0
+                    logging.info("Tasks completed: %.1f%%" %((self.num_all-self.num_remaining)/self.num_all*100.0)  )
+                    time.sleep(self.SLEEP_TIME)
                     break
                 except Exception as e:
                     logging.error('Task failed, task_id = %s'%group_task_list)

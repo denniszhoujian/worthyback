@@ -87,7 +87,7 @@ def crawl_detail_images(sku_id):
 def crawl_detail_all(sku_id):
     ret1 = crawl_detail_property(sku_id)
     ret2 = crawl_detail_images(sku_id)
-    status = ret1['status'] + ret2['status']
+    status = ret1['status'] # + ret2['status']
     ret = {
         'status':status,
         'msg':[ret1,ret2]
