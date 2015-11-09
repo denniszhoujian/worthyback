@@ -22,14 +22,20 @@ def getSkuInfoForList(sku_list):
 
 def getDiscountItemsAll(category_id = "_ALL_", startpos = 0, min_allowed_price=20, min_allowed_discount_rate=0.9):
 
-    mckey = "getDiscountItemsAll3_%s_%s_%s_%s" %(category_id, startpos, min_allowed_price,min_allowed_discount_rate)
-    mcv = mc.get(mckey)
+    kstr = memcachedStatic.getKey(category_id)
+    mckey = "getDiscountItemsAll4_%s_%s_%s_%s" %(kstr, startpos, min_allowed_price,min_allowed_discount_rate)
+    print "memcache key = %s" %mckey
+    # mcv = mc.get(mckey)
+    mcv = None
     if mcv is not None:
-        #print "ok cached"
+        print "ok cached"
         return mcv
 
     if category_id == "_ALL_":
         category_id = ""
+    elif category_id == "_EXPENSIVE_":
+        category_id = ""
+        min_allowed_price = 2000
 
     sql = '''
         select * from
@@ -38,13 +44,14 @@ def getDiscountItemsAll(category_id = "_ALL_", startpos = 0, min_allowed_price=2
         jd_item_dynamic_latest c
         on a.sku_id = c.sku_id
         where c.sku_id is not NULL and current_price>0 and category_id like '%s%%'
-        order by discount_rate*discount_rate*discount_rate*max_price ASC
+        order by discount_rate*power(max_price,0.2) ASC
         limit %s, %s
 
     ''' %(min_allowed_discount_rate, min_allowed_price, category_id, startpos+1, FRAME_SIZE)
-    print sql
+    # print sql
     retrows = dbhelper_read.executeSqlRead(sql)
-    mc.set(mckey, retrows, CACHE_TIME_OUT)
+    # mc.set(mckey, retrows, CACHE_TIME_OUT)
+    print "rows returned: %s" %len(retrows)
     return retrows
 
 

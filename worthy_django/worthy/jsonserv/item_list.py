@@ -23,9 +23,12 @@ def getDiscountItemsAll(request):
     category_id = "_ALL_"
     min_price = min_discount_rate = None
     try:
+        category_id = request.GET['category_id']
+        print "ok, cateid = %s" %category_id
         min_price = float(request.GET['min_price'])
         min_discount_rate = float(request.GET['max_discount_rate'])
         category_id = request.GET['category_id']
+        print "ok, cateid = %s" %category_id
     except:
         pass
 

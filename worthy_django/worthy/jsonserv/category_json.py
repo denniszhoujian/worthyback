@@ -13,6 +13,13 @@ from worthy_service import category_service
 
 def getCategoryListAll(request):
 
-    ret = category_service.getServiceCategoryListAll()
+    level = 1
+    try:
+        level = int(request.GET['level'])
+    except:
+        print("request param: level: incorrect")
+        pass
+
+    ret = category_service.getServiceCategoryListAll(level)
     resp = jsonHelper.getJSONPStr(request,ret)
     return HttpResponse(resp, content_type="application/json")
