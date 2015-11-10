@@ -19,8 +19,17 @@ def __get_category_page_url__(category_id, page_num=1):
     # http://list.jd.com/list.html?cat=9987%2C653%2C655&delivery=1&page=1&stock=0
     category_id = '%s' %category_id
     page_url = "http://list.jd.com/list.html?cat=%s&delivery=1&page=%s&stock=0" % (category_id.replace('-','%2C'),page_num)
+    # print page_url
     return page_url
 
+def __up_roll_category_id__(category_id):
+    cat_reverse = category_id[::-1]
+    idx = cat_reverse.find('-')
+    if idx < 0:
+        return None
+    cat_trunc = cat_reverse[idx+1:len(cat_reverse)]
+    ret = cat_trunc[::-1]
+    return ret
 
 #def __add_price_to_list__(product_list):
 
@@ -32,6 +41,13 @@ def crawl_category(category_id):
     total_pages = jd_list_resolver.resolveTotalPageNum(html)
 
     product_list = jd_list_resolver.resolveProductListFromPage(html)
+
+    while len(product_list) == 0 and category_id is not None:
+        category_id = __up_roll_category_id__(category_id)
+        return crawl_category(category_id)
+
+    if category_id is None:
+        return {'status':-1, 'msg': 'No item in category product list'}
 
     for page_iter in range(2,total_pages+1):
         logging.info('category_id = %s -- page %s' %(category_id,page_iter))
@@ -97,5 +113,8 @@ def crawl_category(category_id):
 
 
 if __name__ == '__main__':
-
-    print crawl_category('737-738-748')
+    import mylog
+    mylog.configLogging('test_list_crawler')
+    cat_id = '652-654-834'
+    print crawl_category(cat_id)
+    # print __up_roll_category_id__('652')

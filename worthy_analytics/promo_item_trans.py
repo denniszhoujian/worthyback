@@ -94,8 +94,8 @@ def processItemPromo():
             obj = json.loads(row['promo_json'])
         except:
             num_error += 1
-            print 'ERROR: json.loads()'
-            print row['promo_json']
+            # print 'ERROR: json.loads()'
+            # print row['promo_json']
             continue
         rtags = obj['pickOneTag']
         for tag in rtags:
@@ -134,7 +134,7 @@ def processItemPromo():
                 vlist.append(tp)
 
     # print num of errors
-    print "num of errors: %s" %num_error
+    print "num of errors: %s (like json.loads error)" %num_error
     print 'num17: %s' %num17
     print 'vlist len: %s' %len(vlist)
     print 'glist len: %s' %len(glist)

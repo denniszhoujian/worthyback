@@ -303,7 +303,7 @@ if __name__ == "__main__":
     # dd = get_Stock_Status(alist)
     # print len(dd)
     # print json.dumps(dd)
-    sku_list = [2075465,1867038]
+    sku_list = [2075465,1867038,105088]
     print getPrices_JD(sku_list)
     print getSkuListPrice_Mob_Realtime(sku_list)
     print getSingleSkuPrice_Mob_Realtime(sku_list[0])

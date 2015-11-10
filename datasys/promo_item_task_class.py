@@ -45,7 +45,7 @@ if __name__ == "__main__":
             print 'Error in arguments'
 
     data_task = Jd_Promo_item_DataTask()
-    data_task.configTask(is_daily=True,interval_hours=24,sleep_time=0.2)
+    data_task.configTask(is_daily=True,interval_hours=24,sleep_time=0.1)
     data_task.doTask(M,N)
 
 

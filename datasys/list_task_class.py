@@ -14,9 +14,6 @@ mylog.configLogging('list_task')
 
 class Jd_List_DataTask(DataTask):
 
-    def __init__(self):
-        self.job_name = "JD_LIST_CRAWLER"
-
      # VIRTUAL
     def __load_all_tasks__(self):
         cat_list = __load_white_categories___()
@@ -78,6 +75,7 @@ if __name__ == "__main__":
             print 'Error in arguments'
 
     data_task = Jd_List_DataTask()
+    data_task.configTask(is_daily=False, interval_hours=4, sleep_time=0.5)
     data_task.doTask(M,N)
 
 
