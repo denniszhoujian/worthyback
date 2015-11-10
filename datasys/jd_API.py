@@ -280,18 +280,33 @@ def _get_Stock_Status(sku_list):
 def get_Stock_Status(sku_list):
     return __accumulative_call__(sku_list,30,_get_Stock_Status)
 
+def getSkuListPrice_Mob_Realtime(sku_list):
+    ret = getPrices_JD(sku_list)
+    obj = {}
+    for key in ret:
+        obj[key] = ret[key][0]
+    return obj
+
+def getSingleSkuPrice_Mob_Realtime(sku_id):
+    return getSkuListPrice_Mob_Realtime([sku_id])["%s" %sku_id]
 
 if __name__ == "__main__":
     #print getPrices_JD([1279171,595936,1279827,1279171,595936,1279827])
-    sql = 'select distinct sku_id from jd_item_dynamic limit 120'
-    retrows = dbhelper.executeSqlRead2(sql)
-    alist = []
-    for row in retrows:
-        alist.append(row[0])
-    # print get_Promo_Sku(1279171)
-    # print getCommentCount_JD([1279171])
-    # print get_Stock_Status([1861098,1856588,1867038,1867670,1866550,1866973,1866564,1904606,1954504,1867014,1866686,1866577,1866958,1866661,1867024,1866945,2109985,2008714,2095246,2095250,2095272,2056957,2008804])
-    dd = get_Stock_Status(alist)
-    print len(dd)
-    print json.dumps(dd)
+    # sql = 'select distinct sku_id from jd_item_dynamic limit 120'
+    # retrows = dbhelper.executeSqlRead2(sql)
+    # alist = []
+    # for row in retrows:
+    #     alist.append(row[0])
+    # # print get_Promo_Sku(1279171)
+    # # print getCommentCount_JD([1279171])
+    # # print get_Stock_Status([1861098,1856588,1867038,1867670,1866550,1866973,1866564,1904606,1954504,1867014,1866686,1866577,1866958,1866661,1867024,1866945,2109985,2008714,2095246,2095250,2095272,2056957,2008804])
+    # dd = get_Stock_Status(alist)
+    # print len(dd)
+    # print json.dumps(dd)
+    sku_list = [2075465,1867038]
+    print getPrices_JD(sku_list)
+    print getSkuListPrice_Mob_Realtime(sku_list)
+    print getSingleSkuPrice_Mob_Realtime(sku_list[0])
+
+    pass
 
