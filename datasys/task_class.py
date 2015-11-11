@@ -14,6 +14,7 @@ TASK_TIMES_OF_RETRY_ON_ERROR = 3
 TASK_RETRY_SLEEP_TIME = 5
 ITERATED_TASK_ERROR_INTERVAL = 600
 
+
 def abstract():
     import inspect
     caller = inspect.getouterframes(inspect.currentframe())[1][3]
@@ -155,7 +156,8 @@ class DataTask():
                         logging.error('TASK EXECUTION FAILED. TASK_ID = %s' %group_task_list)
                         is_task_success = 0
 
-                    self.num_remaining -= 1.0
+                    # self.num_remaining -= 1.0
+                    self.num_remaining -= len(group_task_list)
                     logging.info("Tasks completed: %.1f%%" %((self.num_all-self.num_remaining)/self.num_all*100.0)  )
                     time.sleep(self.SLEEP_TIME)
                     break
@@ -170,11 +172,20 @@ class DataTask():
 
     def doTask(self,M=1,N=1):
         while True:
+            retry = 0
             print 'start job - %s' %timeHelper.getNowLong()
             t1 = time.time()
             is_success = self.doTaskOnce(M,N)
             t2 = time.time()
-            remaining = timeHelper.getTimeLeftTillTomorrow() if is_success==1 else ITERATED_TASK_ERROR_INTERVAL
+
+            remaining = 600
+            if self.is_daily:
+                remaining = timeHelper.getTimeLeftTillTomorrow()
+            else:
+                remaining = self.interval_hours * 3600 - (t2-t1)
+                if remaining < 0:
+                    remaining = 0
+            remaining += 100
             logging.info('='*80)
             logging.info('Finished crawling, using time: %s seconds' %(t2-t1))
             logging.info('Has Errors? %s' %('NO' if is_success==1 else 'YES'))
@@ -182,9 +193,3 @@ class DataTask():
             logging.info('='*80)
             time.sleep(remaining)
 
-
-if __name__ == "__main__":
-    argv = sys.argv
-    la = len(argv)
-
-    # VIRTUAL, DO NOTHING HERE

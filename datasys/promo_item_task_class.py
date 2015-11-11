@@ -16,7 +16,7 @@ class Jd_Promo_item_DataTask(DataTask):
 
      # VIRTUAL
     def __load_all_tasks__(self):
-        sql = 'select distinct sku_id from jd_item_category order by category_id ASC'
+        sql = 'select distinct sku_id from jd_item_category'
         retrows = dbhelper.executeSqlRead2(sql)
         sku_list = []
         for row in retrows:

@@ -44,6 +44,10 @@ def run_tasks_once():
 
 
 def run_tasks_repeated():
+
+    #start at 3:00AM
+    START_HOUR = 3
+
     while True:
         has_error = False
         print "\n\n\nJob start at %s" %timeHelper.getNowLong()
@@ -57,10 +61,10 @@ def run_tasks_repeated():
             print "ERROR GREP LINE"
             print e
             has_error = True
-        remaining = timeHelper.getTimeLeftTillTomorrow()
+        remaining = timeHelper.getTimeLeftTillTomorrow() + START_HOUR*3600 + 100
 
         print "HAS ERROR TODAY? %s" %has_error
-        print "Sleep to tomorrow: hours left = %s" %(remaining/3600)
+        print "Sleep to tomorrow, at %s:00:00 hour: hours left = %s" %(START_HOUR,remaining/3600)
 
         time.sleep(remaining)
         ###
