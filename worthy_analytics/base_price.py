@@ -49,10 +49,11 @@ def calculate_price_table():
     -- d.promo_json as promo_json,
     -- d.quan_json as quan_json,
     -- d.dt as promo_dt,
-    f.ads_json as cat_ads_json,
-    f.promo_json as cat_promo_json,
-    f.quan_json as cat_quan_json,
-    f.dt as cat_promo_dt
+    -- f.ads_json as cat_ads_json,
+    -- f.promo_json as cat_promo_json,
+    -- f.quan_json as cat_quan_json,
+    -- f.dt as cat_promo_dt
+    "","","",""
 
     from
 
@@ -83,18 +84,17 @@ def calculate_price_table():
     -- left join
     -- jd_promo_item_latest d
     -- on h.sku_id = d.sku_id
-    left join
-    jd_promo_category_latest f
-    on f.category_id = c.category_id
+    -- left join
+    -- jd_promo_category_latest f
+    -- on f.category_id = c.category_id
 
     WHERE
 
     b.sku_id is not NULL
     and b.update_time>'%s'
+    and c.sku_id is not NULL
     -- and (d.dt is NULL or d.dt > '2015-11-4')
-    and (f.dt is NULL or f.dt > '%s')
-
-
+    -- and (f.dt is NULL or f.dt > '%s')
 
     ''' %(dt2,dt2,dt4)
 
