@@ -65,7 +65,7 @@ def calculate_rating_diff() :
 
     ''' %timeHelper.getNow()
 
-    print sql
+    # print sql
     afr = dbhelper.executeSqlWrite1(sql)
 
     return afr

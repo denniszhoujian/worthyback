@@ -2,14 +2,17 @@
 
 from datasys import timeHelper
 import time
-import rating_diff,base_price,base_rating
+import rating_diff,base_price,base_rating,promo_item_trans
 
 
 task_func_list = [
     base_price.calculate_price_table,
     base_rating.calculate_base_rating_for_categories,
     rating_diff.calculate_rating_diff,
-
+    promo_item_trans.processItemPromo(),
+    promo_item_trans.process_gift_value(),
+    promo_item_trans.process_promo_detail(),
+    
 ]
 
 

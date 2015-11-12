@@ -7,6 +7,8 @@ from datasys import jd_API
 import MySQLdb
 import re
 
+MAX_DEDUCTION_CONSTANT = 99999999
+
 def read_Promo_Items_Quan() :
 
     sql = '''
@@ -91,14 +93,17 @@ def processItemPromo():
     glist = []
     update_date = timeHelper.getNow()
     recent = timeHelper.getTimeAheadOfNowDays(2)
+    print 'A long query will be running now, need wait...'
     sql = '''
         select sku_id, dt, promo_json from jd_promo_item_latest
         where promo_json is not NULL and LENGTH(promo_json)>100
         and dt>="%s"
     ''' %recent
     retrows = dbhelper.executeSqlRead(sql)
+    # total_rows = len(retrows)
     num_error = 0
     num17 = 0
+    print 'completed!'
     print "Total rows with promo_json: %s" %len(retrows)
     for row in retrows:
         sku_id = row['sku_id']
@@ -171,7 +176,18 @@ def processItemPromo():
             is_many=True
         )
     print "ret2 for gift = %s" %ret2
+    return _generate_mixed_ret([ret1,ret2])
 
+
+def _generate_mixed_ret(ret_list):
+    ret_obj = {
+        'status': 0,
+        'data': []
+    }
+    for ret in ret_list:
+        ret_obj['status'] += ret['status']
+        ret_obj['data'].append(ret)
+    return ret_obj
 
 ## 下面方法必须在当天处理完promo_item的gift数据之后运行
 def process_gift_value(for_date = None):
@@ -251,12 +267,12 @@ def _extract_reach_deduction_array_of_type(content, repeated_deduction=True):
     retlist = []
     ret = {
         'promo':retlist,
-        'max': -1
+        'max': MAX_DEDUCTION_CONSTANT
     }
     plist = content.split(repeat_text)
     if len(plist) <= 1:
         return ret
-    max_deduction_amount = -1
+    max_deduction_amount = MAX_DEDUCTION_CONSTANT
     for item in plist:
         pt = re.compile(u'[\d.]+',re.U)
         pts = pt.findall(item)
@@ -268,7 +284,7 @@ def _extract_reach_deduction_array_of_type(content, repeated_deduction=True):
 
         if len(pts)>2:
             ret['max'] = pts[2]
-        tp = (reach_amount,deduction_amount)
+        tp = (reach_amount,deduction_amount,1 if repeated_deduction else 0)
         retlist.append(tp)
         # print tp
     return ret
@@ -277,8 +293,7 @@ def _extract_reach_deduction_array(content):
     ret1 = _extract_reach_deduction_array_of_type(content, True)
     ret2 = _extract_reach_deduction_array_of_type(content, False)
     ret = {
-        'repeated':ret1['promo'],
-        'non_repated':ret2['promo'],
+        'data':ret1['promo'] + ret2['promo'],
         'max': ret1['max']
     }
     return ret
@@ -309,15 +324,15 @@ def _extract_reach_deduction_array(content):
 
 
 def process_promo_detail():
-    # today = timeHelper.getNow()
-    today = timeHelper.getTimeAheadOfNowDays(1)
+    today = timeHelper.getNow()
+    # today = timeHelper.getTimeAheadOfNowDays(1)
     sql = '''
         select a.*, b.title, b.price, d.id as category_id, d.name as category_name from
 
         jd_analytic_promo_item_latest a
         left join
         jd_item_dynamic_latest b
-        on a.sku_id = b.sku_id and b.sku_id is not NULL
+        on a.sku_id = b.sku_id
 
         left JOIN
         jd_item_category c
@@ -327,11 +342,25 @@ def process_promo_detail():
         jd_category d
         on c.category_id = d.id
 
-        where a.update_date = "%s"
+        where a.dt >= "%s"
+        and b.sku_id is not NULL
+        and b.price is not NULL
     ''' %today
+    # print sql
     retrows = dbhelper.executeSqlRead(sql)
+
     vlist = []
-    dt = timeHelper.getNow()
+    vlist19 = []
+
+    dt = timeHelper.getNowLong()
+
+    print 'num total promo_item rows: %s' %len(retrows)
+    # exit()
+
+    num_15 = 0
+    num_19 = 0
+    num_15_repeated = 0
+
     for row in retrows:
         sku_id = row['sku_id']
         code = int(row['code'])
@@ -340,39 +369,116 @@ def process_promo_detail():
         origin_dt = row['dt']
         pid = row['pid']
         name = row['name'] if 'name' in row else ""
-        price = row['price']
+        price = float("%s" %row['price'])
         category_id = row['category_id']
         category_name = row['category_name']
         title = row['title']
         if code == 15:
+            num_15 += 1
             ret = _extract_reach_deduction_array(content)
 
             # print content
             # print ret
             # print '-'*60
-            max_deduction = ret['max']
-            for item in ret['repeated']:
-                reach = item[0]
-                deduction = [1]
-                dr_ratio = deduction*1.0/reach
-                maxp_ratio = max_deduction*1.0/price if max_deduction > 0 else 1.0
-                
-                single_discount_rate = 0
-                tp =[sku_id, dt, title, price, 1, reach, deduction, max_deduction, dr_ratio, maxp_ratio, category_id, category_name, pid, code, name, content, adurl, origin_dt]
+            stat_has_repeat = False
+            max_deduction = float(ret['max'])
+            for item in ret['data']:
+                try:
+                    reach = float(item[0])
+                    deduction = float(item[1])
+
+                    is_repeat = item[2]
+                    if is_repeat==1:
+                        stat_has_repeat = True
+                    dr_ratio = deduction*1.0/reach
+                    maxp_ratio = max_deduction*1.0/price if max_deduction > 0 else 1.0
+                    could_deduct = 0
+                except Exception as e:
+                    print "reach:%s, deduction:%s" %(reach,deduction)
+                    print e
+                    continue
+
+                if price >= reach and reach>0:
+                    if is_repeat:
+                        times = price // reach
+                    else:
+                        times = 1
+                    could_deduct = times * deduction
+                    if could_deduct > max_deduction:
+                        could_deduct = max_deduction
+                single_discount_rate = could_deduct/price
+                tp =[sku_id, dt, title, price, is_repeat, reach, deduction, max_deduction, dr_ratio, maxp_ratio, single_discount_rate, category_id, category_name, pid, code, name, content, adurl, origin_dt]
+                vlist.append(tp)
+
+            if stat_has_repeat:
+                num_15_repeated += 1
 
         elif code == 19:
-            pass
+            num_19 += 1
+            # 满几件打折或者降低多少
+            type_word_list = ["总价打","商品价格"]
+            # 0: 直接打折
+            # 1: 减商品价格
+            # 2: 其他
+            deduct_type = 2
+            for type_word in type_word_list:
+                if content.find(type_word) >= 0:
+                    deduct_type = 0
+                    break
+            if deduct_type==2:
+                print "NEW TYPE OF DISCOUNT FOUND!!!"
+                print content
+                print "NEW TYPE OF DISCOUNT FOUND!!!"
+
+            pt = re.compile(u'[\d.]+',re.U)
+            pts = pt.findall(content)
+            if len(pts) != 2:
+                if '可购买热销商品' not in content:
+                    print content
+                    print "NEW PATTERN ABOVE"
+            reach_num = discount = free_num = rf_ratio = None
+            reach_num = pts[0]
+            if deduct_type==0:
+                discount = pts[1]
+            elif deduct_type==1:
+                free_num = pts[1]
+                rf_ratio = float(free_num*1.0/reach_num)
+
+            tp19 =[sku_id, dt, title, price, deduct_type, reach_num, discount, free_num, rf_ratio, category_id, category_name, pid, code, name, content, adurl, origin_dt]
+            vlist19.append(tp19)
+
+
         else:
             pass
 
+    print "code = 15, cases = %s" %num_15
+    print "code = 15, repeated = %s" %num_15_repeated
+    print "rows to insert = %s" %len(vlist)
+
+    pret15 = crawler_helper.persist_db_history_and_latest(
+        table_name='jd_analytic_promo_deduction',
+        num_cols=len(vlist[0]),
+        value_list=vlist,
+        is_many=True
+    )
+
+    print "code = 19, cases = %s" %num_19
+    print "rows to insert = %s" %len(vlist19)
+
+    pret19 = crawler_helper.persist_db_history_and_latest(
+        table_name='jd_analytic_promo_discount',
+        num_cols=len(vlist19[0]),
+        value_list=vlist19,
+        is_many=True
+    )
+
+    return _generate_mixed_ret([pret15, pret19])
+
+    return pret
 
 if __name__ == "__main__":
-    # read_Promo_Items_Quan()
-    # read_Promo_Items_Promo()
-    # read_Promo_Items_Ads()
-    #processItemPromo()
-    # process_gift_value()
-
-    ret = process_promo_detail()
+    # print processItemPromo()
+    # print process_gift_value()
+    print process_promo_detail()
 
     pass

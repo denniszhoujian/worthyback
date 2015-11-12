@@ -98,7 +98,7 @@ def calculate_price_table():
 
     ''' %(dt2,dt2,dt4)
 
-    print sql
+    # print sql
 
     affected_rows = dbhelper.executeSqlWrite1(sql)
     return affected_rows
