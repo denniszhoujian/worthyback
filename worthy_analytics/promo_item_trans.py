@@ -9,90 +9,93 @@ import re
 
 MAX_DEDUCTION_CONSTANT = 99999999
 
-def read_Promo_Items_Quan() :
+# def read_Promo_Items_Quan() :
+#
+#     sql = '''
+#         select * from jd_promo_item_latest where quan_json is not NULL
+#     '''
+#     retrows = dbhelper.executeSqlRead(sql)
+#
+#     adict = {}
+#
+#     for row in retrows:
+#         obj = json.loads(row['quan_json'])
+#         url = "http://item.jd.com/%s.html" %row['sku_id']
+#         # print "%s\t\t%s" %(obj['title'],url)
+#         # print ("\n")
+#         adict[obj['title']] = url
+#     pass
+#
+#     for item in adict:
+#         print item
+#         print adict[item]
+#
+# def read_Promo_Items_Ads():
+#     sql = '''
+#     select sku_id, ads_json from jd_promo_item_latest limit 1000
+#     '''
+#     retrows = dbhelper.executeSqlRead(sql)
+#     for row in retrows:
+#         js = row['ads_json']
+#         obj = json.loads(js)
+#         for item in obj:
+#             if len(item['ad'])>0:
+#                 print item['ad']
+#                 print row['sku_id']
+#
+#
+# def read_Promo_Items_Promo() :
+#
+#     sql = '''
+#         select sku_id, promo_json from jd_promo_item_latest
+#         where promo_json is not NULL
+#     '''
+#     retrows = dbhelper.executeSqlRead(sql)
+#
+#     adict = {}
+#     for row in retrows:
+#         json_str = row['promo_json'].strip()
+#         if json_str not in adict:
+#             adict[json_str] = []
+#         vlist = adict[json_str]
+#         vlist.append(row['sku_id'])
+#
+#     for key in adict:
+#         obj = json.loads(key)
+#         pots = obj['pickOneTag']
+#         for pot in pots:
+#             if pot['code'] == '19':
+#                 name = pot['name']
+#                 content = pot['content']
+#                 adurl = pot['adurl']
+#                 print "name"
+#                 print name
+#                 print content
+#                 print adurl
+#
+#         ending = obj['ending']
+#         tags = obj['tags']
+#         skus = adict[key]
+#
+#         print "ending = %s" %ending
+#         print "tags"
+#         for tag in tags:
+#             for k in tag:
+#                 print "%s :: %s" %(k,tag[k])
+#         print skus
+#         print '-'*60
+#
+#     # print json.dumps(adict)
+#     print "ok"
 
-    sql = '''
-        select * from jd_promo_item_latest where quan_json is not NULL
-    '''
-    retrows = dbhelper.executeSqlRead(sql)
-
-    adict = {}
-
-    for row in retrows:
-        obj = json.loads(row['quan_json'])
-        url = "http://item.jd.com/%s.html" %row['sku_id']
-        # print "%s\t\t%s" %(obj['title'],url)
-        # print ("\n")
-        adict[obj['title']] = url
-    pass
-
-    for item in adict:
-        print item
-        print adict[item]
-
-def read_Promo_Items_Ads():
-    sql = '''
-    select sku_id, ads_json from jd_promo_item_latest limit 1000
-    '''
-    retrows = dbhelper.executeSqlRead(sql)
-    for row in retrows:
-        js = row['ads_json']
-        obj = json.loads(js)
-        for item in obj:
-            if len(item['ad'])>0:
-                print item['ad']
-                print row['sku_id']
-
-
-def read_Promo_Items_Promo() :
-
-    sql = '''
-        select sku_id, promo_json from jd_promo_item_latest
-        where promo_json is not NULL
-    '''
-    retrows = dbhelper.executeSqlRead(sql)
-
-    adict = {}
-    for row in retrows:
-        json_str = row['promo_json'].strip()
-        if json_str not in adict:
-            adict[json_str] = []
-        vlist = adict[json_str]
-        vlist.append(row['sku_id'])
-
-    for key in adict:
-        obj = json.loads(key)
-        pots = obj['pickOneTag']
-        for pot in pots:
-            if pot['code'] == '19':
-                name = pot['name']
-                content = pot['content']
-                adurl = pot['adurl']
-                print "name"
-                print name
-                print content
-                print adurl
-
-        ending = obj['ending']
-        tags = obj['tags']
-        skus = adict[key]
-
-        print "ending = %s" %ending
-        print "tags"
-        for tag in tags:
-            for k in tag:
-                print "%s :: %s" %(k,tag[k])
-        print skus
-        print '-'*60
-
-    # print json.dumps(adict)
-    print "ok"
+PROCESS_RAW_PROMO_RECENCY_HOURS = 24
+PROCESS_PROMO_DETAIL_RECENCY_HOURS = 24
 
 def processItemPromo():
     vlist = []
     glist = []
-    update_date = timeHelper.getNow()
-    recent = timeHelper.getTimeAheadOfNowDays(2)
+    update_date = timeHelper.getNowLong()
+    recent = timeHelper.getTimeAheadOfNowHours(PROCESS_RAW_PROMO_RECENCY_HOURS,'%Y-%m-%d %H:%M:%S')
     print 'A long query will be running now, need wait...'
     sql = '''
         select sku_id, dt, promo_json from jd_promo_item_latest
@@ -191,7 +194,7 @@ def _generate_mixed_ret(ret_list):
 
 ## 下面方法必须在当天处理完promo_item的gift数据之后运行
 def process_gift_value(for_date = None):
-    today = timeHelper.getNow()
+    today = timeHelper.getNowLong()
 
     sql1 = 'delete from jd_analytic_promo_gift_valued'
 
@@ -324,7 +327,7 @@ def _extract_reach_deduction_array(content):
 
 
 def process_promo_detail():
-    today = timeHelper.getNow()
+    today = timeHelper.getTimeAheadOfNowHours(PROCESS_PROMO_DETAIL_RECENCY_HOURS,'%Y-%m-%d %H:%M:%S')
     # today = timeHelper.getTimeAheadOfNowDays(1)
     sql = '''
         select a.*, b.title, b.price, d.id as category_id, d.name as category_name from
@@ -474,11 +477,63 @@ def process_promo_detail():
 
     return _generate_mixed_ret([pret15, pret19])
 
-    return pret
+def _transform_retrow_to_list(retrows, col_name):
+    list2 = []
+    for row2 in retrows:
+        list2.append(row2[col_name])
+    return list2
+
+def _delete_skus_from_tables(sku_list,table_list):
+    if len(sku_list)==0 or len(table_list)==0:
+        return 0
+    sku_str = ','.join(sku_list)
+    total_afr = 0
+    for table in table_list:
+        sql = 'delete from %s where sku_id in (%s)' %(table, sku_str)
+        afr = dbhelper.executeSqlWrite1(sql)
+        total_afr += afr
+    return total_afr
+
+def update_promo_results():
+    sql = '''
+    select distinct sku_id
+    from jd_promo_item_latest
+    where
+    length(promo_json)<100
+    '''
+    retrows = dbhelper.executeSqlRead(sql)
+    non_list = _transform_retrow_to_list(retrows, 'sku_id')
+
+    sql2 = 'select distinct sku_id from jd_analytic_promo_deduction_latest'
+    retrows2 = dbhelper.executeSqlRead(sql2)
+    deduction_list = _transform_retrow_to_list(retrows2, 'sku_id')
+    list2 = list(set(non_list).intersection(set(deduction_list)))
+
+    sql3 = 'select distinct sku_id from jd_analytic_promo_deduction_latest'
+    retrows3 = dbhelper.executeSqlRead(sql3)
+    discount_list = _transform_retrow_to_list(retrows3, 'sku_id')
+    list3 = list(set(non_list).intersection(set(discount_list)))
+
+    sql4 = 'select distinct sku_id from jd_analytic_promo_gift_latest'
+    retrows4 = dbhelper.executeSqlRead(sql4)
+    gift_list = _transform_retrow_to_list(retrows4, 'sku_id')
+    list4 = list(set(non_list).intersection(set(gift_list)))
+
+    print "removing invalid promotions now..."
+    print "deduction: %s\tdiscount: %s\tgift: %s" %(len(list2),len(list3),len(list4))
+
+    afr1 = _delete_skus_from_tables(list2,['jd_analytic_promo_deduction_latest'])
+    afr2 = _delete_skus_from_tables(list3,['jd_analytic_promo_deduction_latest'])
+    afr3 = _delete_skus_from_tables(list4,['jd_analytic_promo_gift_latest', 'jd_analytic_promo_gift_valued'])
+
+    print "Removed: "
+    print "deduction: %s\tdiscount: %s\tgift: %s" %(afr1,afr2,afr3)
+    return 0
 
 if __name__ == "__main__":
     # print processItemPromo()
     # print process_gift_value()
-    print process_promo_detail()
+    # print process_promo_detail()
+    update_promo_results()
 
     pass

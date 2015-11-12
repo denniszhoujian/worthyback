@@ -280,6 +280,29 @@ def _get_Stock_Status(sku_list):
 def get_Stock_Status(sku_list):
     return __accumulative_call__(sku_list,30,_get_Stock_Status)
 
+def get_Stock_Status_Resolved(sku_list):
+    clist = jd_API.get_Stock_Status(sku_list)
+    if len(clist)==0:
+        return {'status':-1,'msg':'jd api returned no result for sku_list'}
+    if len(clist)!=len(set(sku_list)):
+        return {'status':-1,'msg':'jd api return size mismatch, size of sku:%s, size of api:%s' %(len(set(sku_list)),len(clist))}
+    vlist = []
+    dt = timeHelper.getNowLong()
+    key_list = ['sku_id','dt','a','b','c','l','j','stock_json']
+    for cdict in clist:
+        cdict['stock_json'] = json.dumps(cdict)
+        cdict['dt'] = dt
+        tp = []
+        for key in key_list:
+            # print 'key=%s\tvalue=%s' %(key,cdict[key])
+            if key in cdict.keys():
+                tp.append(cdict[key])
+            else:
+                tp.append(None)
+        vlist.append(tp)
+        # print '-'*60
+    return vlist
+
 def getSkuListPrice_Mob_Realtime(sku_list):
     ret = getPrices_JD(sku_list)
     obj = {}
