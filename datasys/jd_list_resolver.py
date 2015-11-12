@@ -16,8 +16,8 @@ def __makeUrl__(url_part):
         return url_part
 
 def resolveTotalPageNum(html):
+    doc = libxml2.htmlReadDoc(html,None,'utf8',PARSE_OPTIONS)
     try:
-        doc = libxml2.htmlReadDoc(html,None,'utf8',PARSE_OPTIONS)
         pgtxt = doc.xpathEval('//span[@class="fp-text"]/i')[0].content
         page_num = int(pgtxt)
         return page_num

@@ -37,7 +37,13 @@ def __up_roll_category_id__(category_id):
 def crawl_category(category_id):
 
     logging.info('category_id = %s -- page 1' %(category_id))
-    html = url_utils.getWebResponse(__get_category_page_url__(category_id,1),'utf-8')
+    url = __get_category_page_url__(category_id,1)
+    print url
+    html = url_utils.getWebResponse(url,'utf-8')
+    if html == "":
+        html = url_utils.getWebResponse(url,'gb18030')
+    if html == "":
+        html = url_utils.getWebResponse(url, 'gbk')
     total_pages = jd_list_resolver.resolveTotalPageNum(html)
 
     product_list = jd_list_resolver.resolveProductListFromPage(html)
@@ -115,6 +121,6 @@ def crawl_category(category_id):
 if __name__ == '__main__':
     import mylog
     mylog.configLogging('test_list_crawler')
-    cat_id = '652-654-834'
+    cat_id = '12218-12219'
     print crawl_category(cat_id)
     # print __up_roll_category_id__('652')
