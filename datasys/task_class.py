@@ -86,16 +86,18 @@ class DataTask():
     def __load_thread_tasks__(self,M,N):
         all_tasks = self.__load_all_tasks__()
         all_tasks = self.__make_string_array__(all_tasks)
-        self.num_all = len(all_tasks)*1.0 + 0.00001
+        self.num_all = len(all_tasks)*1.0/N + 0.00001
         logging.info("All tasks: %s" %len(all_tasks))
         print("All tasks: %s" %len(all_tasks))
 
         dedup_tasks = self.__remove_completed_tasks__(all_tasks)
-        self.num_remaining = len(dedup_tasks)*1.0
+        # self.num_remaining = len(dedup_tasks)*1.0
         thread_tasks = []
         for i in xrange(len(dedup_tasks)):
             if i % N == (M-1):
                 thread_tasks.append(dedup_tasks[i])
+
+        self.num_remaining = len(thread_tasks)*1.0
 
         logging.info("Remaining tasks: %s" %len(dedup_tasks))
         logging.info("Thread tasks: %s" %len(thread_tasks))

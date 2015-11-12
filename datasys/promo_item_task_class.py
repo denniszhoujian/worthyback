@@ -10,8 +10,6 @@ import mylog
 reload(sys)
 sys.setdefaultencoding('utf8')
 
-mylog.configLogging('promo_item_task')
-
 class Jd_Promo_item_DataTask(DataTask):
 
      # VIRTUAL
@@ -43,6 +41,8 @@ if __name__ == "__main__":
             N = int(argv[2])
         except:
             print 'Error in arguments'
+
+    mylog.configLogging('promo_item_task_%s_%s') %(M,N)
 
     data_task = Jd_Promo_item_DataTask()
     data_task.configTask(is_daily=False,interval_hours=0,sleep_time=0.1)
