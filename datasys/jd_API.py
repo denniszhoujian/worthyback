@@ -6,6 +6,7 @@ import json
 import time
 import dbhelper
 import logging
+import timeHelper
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -281,7 +282,7 @@ def get_Stock_Status(sku_list):
     return __accumulative_call__(sku_list,30,_get_Stock_Status)
 
 def get_Stock_Status_Resolved(sku_list):
-    clist = jd_API.get_Stock_Status(sku_list)
+    clist = get_Stock_Status(sku_list)
     if len(clist)==0:
         return {'status':-1,'msg':'jd api returned no result for sku_list'}
     if len(clist)!=len(set(sku_list)):
