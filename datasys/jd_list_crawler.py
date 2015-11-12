@@ -38,7 +38,7 @@ def crawl_category(category_id):
 
     logging.info('category_id = %s -- page 1' %(category_id))
     url = __get_category_page_url__(category_id,1)
-    print url
+    # print url
     html = url_utils.getWebResponse(url,'utf-8')
     if html == "":
         html = url_utils.getWebResponse(url,'gb18030')
