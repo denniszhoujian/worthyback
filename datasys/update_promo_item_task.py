@@ -39,7 +39,7 @@ class Jd_Promo_Item_Update_DataTask(DataTask):
         select sku_id from jd_analytic_promo_gift_valued
         )k
         '''
-        retrows = dbhelper.executeSqlRead2(sql)
+        retrows = dbhelper.executeSqlRead2(sql, is_dirty=True)
         sku_list = []
         for row in retrows:
             sku_list.append(row[0])
@@ -69,7 +69,7 @@ if __name__ == "__main__":
     mylog.configLogging('update_promo_item_task_%s_%s' %(M,N))
 
     data_task = Jd_Promo_Item_Update_DataTask()
-    data_task.configTask(is_daily=False,interval_hours=0,sleep_time=0.1)
+    data_task.configTask(is_daily=False,interval_hours=1200,sleep_time=0.1)
     data_task.doTask(M,N)
 
 

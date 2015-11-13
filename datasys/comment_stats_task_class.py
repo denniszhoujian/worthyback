@@ -16,8 +16,9 @@ class Jd_Comment_Stats_DataTask(DataTask):
 
      # VIRTUAL
     def __load_all_tasks__(self):
-        sql = 'select distinct sku_id from jd_item_category order by category_id ASC'
-        retrows = dbhelper.executeSqlRead2(sql)
+        daysago3 = timeHelper.getTimeAheadOfNowDays(3)
+        sql = 'select distinct sku_id from jd_item_dynamic_latest where update_date >= "%s"' %daysago3
+        retrows = dbhelper.executeSqlRead2(sql, is_dirty=True)
         sku_list = []
         for row in retrows:
             sku_list.append(row[0])
