@@ -193,7 +193,7 @@ class DataTask():
                 remaining = self.interval_hours * 3600 - (t2-t1)
                 if remaining < 0:
                     remaining = 0
-            remaining += 100
+            remaining += 10
             logging.info('='*80)
             logging.info('Finished crawling, using time: %s seconds' %(t2-t1))
             logging.info('Has Errors? %s' %('NO' if is_success==1 else 'YES'))
