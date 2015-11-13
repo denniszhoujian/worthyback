@@ -36,7 +36,7 @@ def __up_roll_category_id__(category_id):
 
 def crawl_category(category_id):
 
-    logging.info('category_id = %s -- page 1' %(category_id))
+    logging.debug('category_id = %s -- page 1' %(category_id))
     url = __get_category_page_url__(category_id,1)
     # print url
     html = url_utils.getWebResponse(url,'utf-8')
@@ -56,7 +56,7 @@ def crawl_category(category_id):
         return {'status':-1, 'msg': 'No item in category product list'}
 
     for page_iter in range(2,total_pages+1):
-        logging.info('category_id = %s -- page %s' %(category_id,page_iter))
+        logging.debug('category_id = %s -- page %s' %(category_id,page_iter))
         url = __get_category_page_url__(category_id,page_iter)
         html = url_utils.getWebResponse(url,'utf-8')
         product_list = product_list + jd_list_resolver.resolveProductListFromPage(html)
@@ -100,7 +100,7 @@ def crawl_category(category_id):
       has_free_gift,icon_url,price,price_m,price_pcp,update_date,update_time) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
       '''
     affected_rows = dbhelper.executeSqlWriteMany(sql,product_list)
-    logging.info('Saved to DB -- category_id = %s -- sku_count=%s -- affected_rows=%s' %(category_id,total_goods_num,affected_rows))
+    logging.debug('Saved to DB -- category_id = %s -- sku_count=%s -- affected_rows=%s' %(category_id,total_goods_num,affected_rows))
 
     ret_obj = {
         'status': 0,
@@ -113,7 +113,7 @@ def crawl_category(category_id):
         item_cat_list.append((prod[0],category_id,))
     sql2 = 'replace into jd_item_category values (%s,%s)'
     affected_rows2 = dbhelper.executeSqlWriteMany(sql2,item_cat_list)
-    logging.info('Saved to DB - item_category - affected rows = %s' %affected_rows2)
+    logging.debug('Saved to DB - item_category - affected rows = %s' %affected_rows2)
 
     return ret_obj
 

@@ -12,7 +12,7 @@ sys.setdefaultencoding('utf8')
 
 TASK_TIMES_OF_RETRY_ON_ERROR = 3
 TASK_RETRY_SLEEP_TIME = 5
-ITERATED_TASK_ERROR_INTERVAL = 600
+# ITERATED_TASK_ERROR_INTERVAL = 600
 
 
 def abstract():
@@ -63,8 +63,9 @@ class DataTask():
         if self.is_daily:
             sql = 'select task_id from task_status where job_name="%s" and update_time>="%s 0:00:00" group by task_id' %(self.job_name,timeHelper.getNow())
         else:
-            stime = timeHelper.getTimeAheadOfNowHours(self.interval_hours)
-            sql = 'select task_id from task_status where job_name="%s" and update_time>="%s 0:00:00" group by task_id' %(self.job_name,stime)
+            stime = timeHelper.getTimeAheadOfNowHours(self.interval_hours,format='%Y-%m-%d %H:%M:%S')
+            sql = 'select task_id from task_status where job_name="%s" and update_time>="%s" group by task_id' %(self.job_name,stime)
+        # print sql
         retrows = dbhelper.executeSqlRead(sql)
         catlist = []
         for row in retrows:
@@ -140,6 +141,7 @@ class DataTask():
 
             tries = 0
             is_task_success = 0
+            last_complete_percent = 0
             while tries < TASK_TIMES_OF_RETRY_ON_ERROR:
                 tries += 1
                 try:
@@ -148,7 +150,7 @@ class DataTask():
                     else:
                         ret = self.__task_order__(group_task_list)
 
-                    logging.info('return: %s' %ret)
+                    logging.debug('return: %s' %ret)
 
                     if ret['status'] == 0:
                         self.__record_task_complete__(group_task_list)
@@ -160,7 +162,11 @@ class DataTask():
 
                     # self.num_remaining -= 1.0
                     self.num_remaining -= len(group_task_list)
-                    logging.info("Tasks completed: %.1f%%" %((self.num_all-self.num_remaining)/self.num_all*100.0)  )
+                    complete_percent = (self.num_all-self.num_remaining)/self.num_all*100.0
+                    if (complete_percent-last_complete_percent) > 19.9:
+                        logging.info("Tasks completed: %.1f%%" %complete_percent)
+                    logging.debug("Tasks completed: %.1f%%" %complete_percent)
+                    last_complete_percent = complete_percent
                     time.sleep(self.SLEEP_TIME)
                     break
                 except Exception as e:
