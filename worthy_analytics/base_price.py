@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-from datasys import dbhelper, timeHelper
+from datasys import dbhelper, timeHelper, crawler_helper
 import time
 
 def calculate_price_table():
@@ -22,11 +22,8 @@ def calculate_price_table():
     '''
     """
 
-    dt4 = timeHelper.getTimeAheadOfNowDays(4)
     dt2 = timeHelper.getTimeAheadOfNowDays(2)
     sql = '''
-
-    replace into jd_price_temp
 
     select
     h.sku_id as sku_id,
@@ -42,18 +39,8 @@ def calculate_price_table():
     b.c as c,
     b.j as j,
     b.l as l,
-    b.stock_json as stock_json,
     b.update_time as stock_update_time,
-    c.category_id as category_id,
-    -- d.ads_json as ads_json,
-    -- d.promo_json as promo_json,
-    -- d.quan_json as quan_json,
-    -- d.dt as promo_dt,
-    -- f.ads_json as cat_ads_json,
-    -- f.promo_json as cat_promo_json,
-    -- f.quan_json as cat_quan_json,
-    -- f.dt as cat_promo_dt
-    "","","",""
+    c.category_id as category_id
 
     from
 
@@ -69,8 +56,6 @@ def calculate_price_table():
 
         from
         jd_item_dynamic
-        where
-        update_date > '2015-10-20'
 
         group by sku_id
         having max(update_date) > '%s'
@@ -91,30 +76,33 @@ def calculate_price_table():
     WHERE
 
     b.sku_id is not NULL
-    and b.update_time>'%s'
     and c.sku_id is not NULL
-    -- and (d.dt is NULL or d.dt > '2015-11-4')
-    -- and (f.dt is NULL or f.dt > '%s')
 
-    ''' %(dt2,dt2,dt4)
+    ''' %(dt2)
 
     # print sql
 
-    affected_rows = dbhelper.executeSqlWrite1(sql)
-    return affected_rows
+    print 'Reading (dirty) database...'
+    retrows = dbhelper.executeSqlRead2(sql,is_dirty=True)
+    if len(retrows)<=0:
+        error_msg = 'error: reading database returned 0 rows'
+        print error_msg
+        return {'status':-1, 'msg':error_msg}
+    print 'Completed. Rows read: %s' %len(retrows)
+    # print len(retrows[0])
+
+    print 'Writing to db...'
+    return crawler_helper.persist_db_history_and_latest(
+        table_name='jd_price_temp',
+        num_cols=len(retrows[0]),
+        value_list=retrows,
+        is_many=True,
+        need_history=False
+    )
 
 
 if __name__ == "__main__":
-
-
-    while True:
-        t1 = time.time()
-        affected_rows = calculate_price_table()
-        t2 = time.time()
-        print "Completed. Rows affected: %s" %affected_rows
-        print "using time in seconds: %s" %(t2-t1)
-
-        remaining = timeHelper.getTimeLeftTillTomorrow()
-
-        print "Now sleep to tomorrow, hours left = %s" %(remaining/3600)
-        time.sleep(remaining)
+    t1 = time.time()
+    print calculate_price_table()
+    t2 = time.time()
+    print int(t2-t1)

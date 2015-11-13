@@ -3,6 +3,7 @@
 import logging
 import sys
 import timeHelper
+import data_config
 
 # timenow = timeHelper.getNow()
 # filename = '/tmp/worth_datasys_%s.log' %timenow
@@ -28,7 +29,7 @@ import timeHelper
 # def getLogger():
 #     return logger
 
-def configLogging(log_name, log_level=logging.INFO):
+def configLogging(log_name, log_level=data_config.LOGGING_LEVEL):
     timenow = timeHelper.getNow()
     #filename = '/tmp/%s_worthy_%s.log' %(log_name,timenow)
     filename = '/tmp/%s_worthy.log' %(log_name)

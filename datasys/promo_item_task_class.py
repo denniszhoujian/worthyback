@@ -6,6 +6,7 @@ import time
 from task_class import DataTask
 import jd_api_crawler
 import mylog
+import timeHelper
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -14,7 +15,8 @@ class Jd_Promo_item_DataTask(DataTask):
 
      # VIRTUAL
     def __load_all_tasks__(self):
-        sql = 'select distinct sku_id from jd_item_category'
+        daysago3 = timeHelper.getTimeAheadOfNowDays(3)
+        sql = 'select distinct sku_id from jd_item_dynamic_latest where update_date >= "%s"' %daysago3
         retrows = dbhelper.executeSqlRead2(sql)
         sku_list = []
         for row in retrows:
@@ -45,7 +47,7 @@ if __name__ == "__main__":
     mylog.configLogging('promo_item_task_%s_%s' %(M,N))
 
     data_task = Jd_Promo_item_DataTask()
-    data_task.configTask(is_daily=False,interval_hours=0,sleep_time=0.1)
+    data_task.configTask(is_daily=False,interval_hours=4,sleep_time=0.08)
     data_task.doTask(M,N)
 
 

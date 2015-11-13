@@ -12,11 +12,13 @@ def getConnection():
     conn = MySQLdb.connect(host=datadict['host'], user=datadict['user'], passwd=datadict['passwd'], db=datadict['db'], port=datadict['port'], charset='utf8')
     return conn
 
-def executeSqlWrite1(sql):
+def executeSqlWrite1(sql, is_dirty=False):
     conn = getConnection()
     try:
         cursor1 = conn.cursor(MySQLdb.cursors.DictCursor)
         #sql = MySQLdb.escape_string(sql)
+        if is_dirty:
+            cursor1.execute('set @@session.tx_isolation="read-uncommitted"')
         retrows = cursor1.execute(sql)
         conn.commit()
         affected_rows = cursor1.rowcount
@@ -27,11 +29,13 @@ def executeSqlWrite1(sql):
         conn.close()
     return affected_rows
 
-def executeSqlWrite(sql, vlist):
+def executeSqlWrite(sql, vlist, is_dirty=False):
     conn = getConnection()
     affected_rows = 0
     try:
         cursor1 = conn.cursor(MySQLdb.cursors.DictCursor)
+        if is_dirty:
+            cursor1.execute('set @@session.tx_isolation="read-committed"')
         cursor1.execute(sql, vlist)
         conn.commit()
         affected_rows = cursor1.rowcount
@@ -42,11 +46,13 @@ def executeSqlWrite(sql, vlist):
         conn.close()
     return affected_rows
 
-def executeSqlWriteMany(sql, vlist):
+def executeSqlWriteMany(sql, vlist, is_dirty=False):
     conn = getConnection()
     affected_rows = 0
     try:
         cursor1 = conn.cursor()
+        if is_dirty:
+            cursor1.execute('set @@session.tx_isolation="read-committed"')
         cursor1.executemany(sql, vlist)
         conn.commit()
         affected_rows = cursor1.rowcount
@@ -57,22 +63,26 @@ def executeSqlWriteMany(sql, vlist):
         conn.close()
     return affected_rows
 
-def executeSqlRead(sql):
+def executeSqlRead(sql, is_dirty=False):
     conn = getConnection()
     retrows = {}
     try:
         cursor1 = conn.cursor(MySQLdb.cursors.DictCursor)
+        if is_dirty:
+            cursor1.execute('set @@session.tx_isolation="read-uncommitted"')
         cursor1.execute(sql)
         retrows = cursor1.fetchall()
     finally:
         conn.close()
     return retrows
 
-def executeSqlRead2(sql):
+def executeSqlRead2(sql, is_dirty=False):
     conn = getConnection()
     retrows = {}
     try:
         cursor1 = conn.cursor()
+        if is_dirty:
+            cursor1.execute('set @@session.tx_isolation="read-uncommitted"')
         cursor1.execute(sql)
         retrows = cursor1.fetchall()
     finally:

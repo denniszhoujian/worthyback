@@ -14,7 +14,7 @@ if __name__ == '__main__':
         function_list=func_list,
         is_daily=False,
         start_hour=0, # no use
-        interval_secs=1200,
+        interval_secs=600,
         min_sleep=120 # 2 mins
     )
     wp.run_tasks_repeated()

@@ -84,7 +84,8 @@ def crawl_item_promo(sku_id):
         table_name='jd_promo_item',
         num_cols=len(vlist[0]),
         value_list=vlist,
-        is_many=True
+        is_many=True,
+        # need_history=True
     )
 
 

@@ -4,6 +4,7 @@ import sys
 import libxml2
 import url_utils
 import logging
+import timeHelper
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -26,6 +27,8 @@ def resolveTotalPageNum(html):
 
 def resolveProductListFromPage(html):
     product_list = []
+    nowtime = timeHelper.getNowLong()
+    nowdate = timeHelper.getNow()
     try:
         doc = libxml2.htmlReadDoc(html,None,'utf8',PARSE_OPTIONS)
         sku_docs = doc.xpathEval('//div[@data-sku]')
@@ -86,7 +89,7 @@ def resolveProductListFromPage(html):
                 sku_url = __makeUrl__(sku_url)
                 sku_thumnail_url = __makeUrl__(sku_thumnail_url)
 
-                tp = (sku_id,sku_title,sku_url,sku_thumnail_url,sku_stock,comment_count,is_global,is_pay_on_delivery,is_free_gift,sku_icon_url)
+                tp = (sku_id,nowdate,nowtime,sku_title,sku_url,sku_thumnail_url,sku_stock,comment_count,is_global,is_pay_on_delivery,is_free_gift,sku_icon_url)
                 product_list.append(tp)
 
             except Exception as e:

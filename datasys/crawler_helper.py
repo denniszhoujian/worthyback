@@ -3,15 +3,17 @@
 import dbhelper
 import MySQLdb
 
-def persist_db_history_and_latest(table_name, num_cols, value_list, is_many=True):
+def persist_db_history_and_latest(table_name, num_cols, value_list, is_many=True, need_history=False):
     tbl_latest = '%s_latest' %table_name
     ps_list = []
     for i in xrange(num_cols):
         ps_list.append('%s')
     values_str = ','.join(ps_list)
 
-    sql = 'replace into %s values(%s)' %(table_name,values_str)
-    affected_rows = dbhelper.executeSqlWriteMany(sql,value_list)
+    affected_rows = 99999
+    if need_history:
+        sql = 'replace into %s values(%s)' %(table_name,values_str)
+        affected_rows = dbhelper.executeSqlWriteMany(sql,value_list)
     sql2 = 'replace into %s values(%s)' %(tbl_latest,values_str)
     affected_rows2 = dbhelper.executeSqlWriteMany(sql2,value_list)
     status = -1
@@ -24,7 +26,7 @@ def persist_db_history_and_latest(table_name, num_cols, value_list, is_many=True
     }
     return ret
 
-def persist_db_history_and_lastest_empty_first(table_name, num_cols, value_list, is_many=True):
+def persist_db_history_and_lastest_empty_first(table_name, num_cols, value_list, is_many=True, need_history=False):
 
     ret = {
         'status':-1,
@@ -49,7 +51,9 @@ def persist_db_history_and_lastest_empty_first(table_name, num_cols, value_list,
         cursor1 = conn.cursor()
         afr1 = cursor1.execute(sql_empty)
         afr2 = cursor1.executemany(sql2, value_list)
-        afr3 = cursor1.executemany(sql,value_list)
+        afr3 = 0
+        if need_history:
+            afr3 = cursor1.executemany(sql,value_list)
         conn.commit()
         affected_rows = cursor1.rowcount
         ret = {

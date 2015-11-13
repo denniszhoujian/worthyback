@@ -8,6 +8,7 @@ import url_utils
 import jd_list_resolver
 import jd_API
 import dbhelper
+import crawler_helper
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -52,7 +53,7 @@ def crawl_category(category_id):
         category_id = __up_roll_category_id__(category_id)
         return crawl_category(category_id)
 
-    if category_id is None:
+    if category_id is None or len(product_list)==0:
         return {'status':-1, 'msg': 'No item in category product list'}
 
     for page_iter in range(2,total_pages+1):
@@ -82,31 +83,35 @@ def crawl_category(category_id):
     # print '='*80
 
     # combine product list and price list, timestamp, category_id
-    nowtime = timeHelper.getNowLong()
-    nowdate = timeHelper.getNow()
+    # nowtime = timeHelper.getNowLong()
+    # nowdate = timeHelper.getNow()
     for i in xrange(total_goods_num):
         product_id = product_list[i][0]
         pkey = '%s' %product_id
         if pkey in price_obj:
-            product_list[i] = product_list[i] + (price_obj[pkey][0],price_obj[pkey][1],price_obj[pkey][2],nowdate,nowtime,)
+            product_list[i] = product_list[i] + (price_obj[pkey][0],price_obj[pkey][1],price_obj[pkey][2],) #nowdate,nowtime,)
         else:
             logging.error('Error: product_id=%s cannot get result' %(product_id,price_id))
             continue
 
     # persist in database
     # (sku_id,sku_title,sku_url,sku_thumnail_url,sku_stock,comment_count,is_global,is_pay_on_delivery,is_free_gift,sku_icon_url, price, price_m, update_date,update_time, category_id)
-    sql = '''
-      replace into jd_item_dynamic (sku_id,title,url,thumbnail_url,stock_status,comment_count,is_global,is_pay_on_delivery,
-      has_free_gift,icon_url,price,price_m,price_pcp,update_date,update_time) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-      '''
-    affected_rows = dbhelper.executeSqlWriteMany(sql,product_list)
-    logging.debug('Saved to DB -- category_id = %s -- sku_count=%s -- affected_rows=%s' %(category_id,total_goods_num,affected_rows))
+    # sql = '''
+    #   replace into jd_item_dynamic (sku_id,title,url,thumbnail_url,stock_status,comment_count,is_global,is_pay_on_delivery,
+    #   has_free_gift,icon_url,price,price_m,price_pcp,update_date,update_time) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+    #   '''
+    # affected_rows = dbhelper.executeSqlWriteMany(sql,product_list)
 
-    ret_obj = {
-        'status': 0,
-        'affected_rows': affected_rows,
-        'sku_count': total_goods_num
-    }
+    ret = crawler_helper.persist_db_history_and_latest(
+        table_name='jd_item_dynamic',
+        num_cols=len(product_list[0]),
+        value_list=product_list,
+        is_many=True,
+        need_history=True
+    )
+
+    logging.debug('Saved to DB -- category_id = %s -- sku_count=%s' %(category_id,total_goods_num))
+    logging.debug('%s' %ret)
 
     item_cat_list = []
     for prod in product_list:
@@ -114,6 +119,14 @@ def crawl_category(category_id):
     sql2 = 'replace into jd_item_category values (%s,%s)'
     affected_rows2 = dbhelper.executeSqlWriteMany(sql2,item_cat_list)
     logging.debug('Saved to DB - item_category - affected rows = %s' %affected_rows2)
+    if affected_rows2<=0:
+        logging.error('Saving to item_category error, category_id = %s' %category_id)
+
+    ret_obj = {
+        'status': 0 if ret['status']==0 and affected_rows2>0 else -1,
+        'item_dynamic': ret,
+        'item_category': affected_rows2
+    }
 
     return ret_obj
 

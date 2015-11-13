@@ -9,10 +9,10 @@ def calculate_base_rating_for_categories():
 
     today = timeHelper.getNow()
     sql = getSqlCatRating()
-    retrows = dbhelper.executeSqlRead(sql)
-    print sql
+    retrows = dbhelper.executeSqlRead(sql, is_dirty=True)
+    # print sql
     print "rows of data selected for insert: %s" %len(retrows)
-    print len(retrows[0])
+    # print len(retrows[0])
     # print retrows[0]
     vlist = []
     for row in retrows:
@@ -87,8 +87,6 @@ def getSqlCatRating():
     ''' %(today)
     return sql
 
-def test():
-    print "test"
 
 if __name__ == "__main__":
 
