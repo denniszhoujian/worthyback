@@ -164,7 +164,7 @@ def processItemPromo():
     # persist in DB
     ret1 = ret2 = None
     if len(vlist)>0:
-        ret1 = crawler_helper.persist_db_history_and_latest(
+        ret1 = crawler_helper.persist_db_history_and_lastest_empty_first(
             table_name='jd_analytic_promo_item',
             num_cols=len(vlist[0]),
             value_list=vlist,
@@ -172,7 +172,7 @@ def processItemPromo():
         )
     print "ret1 for promo = %s" %ret1
     if len(glist)>0:
-        ret2 = crawler_helper.persist_db_history_and_latest(
+        ret2 = crawler_helper.persist_db_history_and_lastest_empty_first(
             table_name='jd_analytic_promo_gift',
             num_cols=len(glist[0]),
             value_list=glist,
@@ -194,7 +194,8 @@ def _generate_mixed_ret(ret_list):
 
 ## 下面方法必须在当天处理完promo_item的gift数据之后运行
 def process_gift_value(for_date = None):
-    today = timeHelper.getNowLong()
+    # today = timeHelper.getNowLong()
+    today = timeHelper.getTimeAheadOfNowHours(24,format='%Y-%m-%d %H:%M:%S')
 
     sql1 = 'delete from jd_analytic_promo_gift_valued'
 
@@ -221,7 +222,7 @@ def process_gift_value(for_date = None):
     on a.gift_sku_id = c.sku_id
 
     where
-    a.update_date = '%s'
+    a.update_date >= '%s'
     and b.price is not NULL
     and c.price is not NULL
 
@@ -458,7 +459,7 @@ def process_promo_detail():
     print "code = 15, repeated = %s" %num_15_repeated
     print "rows to insert = %s" %len(vlist)
 
-    pret15 = crawler_helper.persist_db_history_and_latest(
+    pret15 = crawler_helper.persist_db_history_and_lastest_empty_first(
         table_name='jd_analytic_promo_deduction',
         num_cols=len(vlist[0]),
         value_list=vlist,
@@ -468,7 +469,7 @@ def process_promo_detail():
     print "code = 19, cases = %s" %num_19
     print "rows to insert = %s" %len(vlist19)
 
-    pret19 = crawler_helper.persist_db_history_and_latest(
+    pret19 = crawler_helper.persist_db_history_and_lastest_empty_first(
         table_name='jd_analytic_promo_discount',
         num_cols=len(vlist19[0]),
         value_list=vlist19,
@@ -494,46 +495,95 @@ def _delete_skus_from_tables(sku_list,table_list):
         total_afr += afr
     return total_afr
 
-def update_promo_results():
-    sql = '''
-    select distinct sku_id
-    from jd_promo_item_latest
-    where
-    length(promo_json)<100
-    '''
-    retrows = dbhelper.executeSqlRead(sql)
-    non_list = _transform_retrow_to_list(retrows, 'sku_id')
+def _transform_retrows_to_dict(retrows, col1_name, col2_name):
+    ret = {}
+    for row in retrows:
+        id = row[col1_name]
+        if id in ret:
+            ret[id].append(row[col2_name])
+        else:
+            ret[id] = [row[col2_name],]
+    return ret
 
-    sql2 = 'select distinct sku_id from jd_analytic_promo_deduction_latest'
+def _find_time_mismatch(retrows1,retrows2,col1_name,col2_name):
+    list1_dict = _transform_retrows_to_dict(retrows1,'sku_id',col1_name)
+    vlist = []
+    for row in retrows2:
+        if row[col2_name] not in list1_dict[row['sku_id']]:
+            vlist.append(row['sku_id'])
+    return vlist
+
+def update_promo_results():
+    print 'Set of long query'
+    sql_all = '''
+    select sku_id,dt,promo_json
+    from jd_promo_item_latest
+    -- where
+    -- length(promo_json)<100
+    '''
+    # retrows = dbhelper.executeSqlRead(sql)
+    # non_list = _transform_retrow_to_list(retrows, 'sku_id')
+    # print 'Finished 1 of 6'
+
+    # sql_all = 'select sku_id, dt from jd_promo_item_latest'
+    retrows_all = dbhelper.executeSqlRead(sql_all)
+    print 'Finished 2 of 6'
+    non_list = []
+    for row in retrows_all:
+        if len(row['promo_json']) < 100:
+            non_list.append(row['sku_id'])
+
+    sql5 = 'select sku_id,dt from jd_analytic_promo_item_latest'
+    retrows5 = dbhelper.executeSqlRead(sql5)
+    item_list = _transform_retrow_to_list(retrows5, 'sku_id')
+    list5 = list(set(non_list).intersection(set(item_list)))
+    list55 = _find_time_mismatch(retrows_all,retrows5,'dt','dt')
+    list5 = list(set(list5) + set(list55))
+    print 'Finished 3 of 6'
+
+    sql2 = 'select sku_id,origin_time from jd_analytic_promo_deduction_latest'
     retrows2 = dbhelper.executeSqlRead(sql2)
     deduction_list = _transform_retrow_to_list(retrows2, 'sku_id')
     list2 = list(set(non_list).intersection(set(deduction_list)))
+    list22 = _find_time_mismatch(retrows_all,retrows2,'dt','origin_time')
+    list2 = list(set(list2) + set(list22))
+    print 'Finished 4 of 6'
 
-    sql3 = 'select distinct sku_id from jd_analytic_promo_deduction_latest'
+    sql3 = 'select sku_id,origin_time from jd_analytic_promo_discount_latest'
     retrows3 = dbhelper.executeSqlRead(sql3)
     discount_list = _transform_retrow_to_list(retrows3, 'sku_id')
     list3 = list(set(non_list).intersection(set(discount_list)))
+    list33 = _find_time_mismatch(retrows_all,retrows3,'dt','origin_time')
+    list3 = list(set(list3) + set(list33))
+    print 'Finished 5 of 6'
 
-    sql4 = 'select distinct sku_id from jd_analytic_promo_gift_latest'
+    sql4 = 'select sku_id,origin_time  from jd_analytic_promo_gift_latest'
     retrows4 = dbhelper.executeSqlRead(sql4)
     gift_list = _transform_retrow_to_list(retrows4, 'sku_id')
     list4 = list(set(non_list).intersection(set(gift_list)))
-
+    list44 = _find_time_mismatch(retrows_all,retrows4,'dt','origin_time')
+    list4 = list(set(list4) + set(list44))
+    print 'Finished 6 of 6\n'
     print "removing invalid promotions now..."
-    print "deduction: %s\tdiscount: %s\tgift: %s" %(len(list2),len(list3),len(list4))
+    print "item_promo: %s\ndeduction: %s\ndiscount: %s\ngift: %s" %(len(list5),len(list2),len(list3),len(list4))
 
-    afr1 = _delete_skus_from_tables(list2,['jd_analytic_promo_deduction_latest'])
-    afr2 = _delete_skus_from_tables(list3,['jd_analytic_promo_deduction_latest'])
-    afr3 = _delete_skus_from_tables(list4,['jd_analytic_promo_gift_latest', 'jd_analytic_promo_gift_valued'])
+    print list5,list2,list3,list4
+    exit()
+
+    afr5 = _delete_skus_from_tables(list5,['jd_analytic_promo_item_latest'])
+    afr2 = _delete_skus_from_tables(list2,['jd_analytic_promo_deduction_latest'])
+    afr3 = _delete_skus_from_tables(list3,['jd_analytic_promo_discount_latest'])
+    afr4 = _delete_skus_from_tables(list4,['jd_analytic_promo_gift_latest', 'jd_analytic_promo_gift_valued'])
 
     print "Removed: "
-    print "deduction: %s\tdiscount: %s\tgift: %s" %(afr1,afr2,afr3)
+    print "item_promo: %s\ndeduction: %s\ndiscount: %s\ngift: %s" %(afr5,afr2,afr3,afr4)
     return 0
+
 
 if __name__ == "__main__":
     # print processItemPromo()
     # print process_gift_value()
     # print process_promo_detail()
-    update_promo_results()
+    # update_promo_results()
 
     pass

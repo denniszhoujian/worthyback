@@ -20,22 +20,28 @@ class WorthyProcessBase:
         self.min_sleep = min_sleep
 
     def run_tasks_once(self):
-        print "-" * 80
+        print "=" * 120
         print "Function list:"
+        print "=" * 120
         for item in self.task_func_list:
-            print item
-        print "-" * 80
+            print '\t%s' %item
+        print '=' * 120
+        print
+        print
         has_error = False
         has_error_anywhere = False
         for func in self.task_func_list:
             has_error = False
-            print "*" * 60
+            print
+            print "*" * 120
             print "now running func: %s" %(func)
+            print "*" * 120
+            print
             t1 = time.time()
             try:
 
                 ret = func()
-                print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> func %s returning value: %s >>>>>>>>>>>>>>>>>>>>>>" %(func, ret)
+                print "\t>>>>>>>>>>>>>>>>>>>>> func %s returning value: %s >>>>>>>>>>>>>>>" %(func, ret)
 
             except Exception as e:
                 print "ERROR GREP LINE"
@@ -43,7 +49,7 @@ class WorthyProcessBase:
                 has_error = True
                 has_error_anywhere = True
             t2 = time.time()
-            print "completed running func %s, using seconds = %s, has_error = %s \n" %(func, t2-t1, has_error)
+            print "\tcompleted running func %s, using seconds = %s, has_error = %s \n" %(func, t2-t1, has_error)
 
         return has_error_anywhere
 

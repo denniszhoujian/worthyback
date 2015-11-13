@@ -10,7 +10,7 @@ import copy
 reload(sys)
 sys.setdefaultencoding('utf8')
 
-TASK_TIMES_OF_RETRY_ON_ERROR = 3
+TASK_TIMES_OF_RETRY_ON_ERROR = 1    # WAS 3
 TASK_RETRY_SLEEP_TIME = 5
 # ITERATED_TASK_ERROR_INTERVAL = 600
 
@@ -120,6 +120,7 @@ class DataTask():
         accumulated_task_num = 0
         all_task_num = len(task_list)
         iter = 0
+        t_init = time.time()
         for cat_id in task_list:
             iter += 1
             group_task_list = []
@@ -164,9 +165,11 @@ class DataTask():
                     self.num_remaining -= len(group_task_list)
                     complete_percent = (self.num_all-self.num_remaining)/self.num_all*100.0
                     if (complete_percent-last_complete_percent) > 19.9:
-                        logging.info("Tasks completed: %.1f%%" %complete_percent)
+                        t_now = time.time()
+                        logging.info("Tasks completed: %.1f%%, ellapsed seconds: %s" %(complete_percent,int(t_now-t_init)))
+                        last_complete_percent = complete_percent
+
                     logging.debug("Tasks completed: %.1f%%" %complete_percent)
-                    last_complete_percent = complete_percent
                     time.sleep(self.SLEEP_TIME)
                     break
                 except Exception as e:
