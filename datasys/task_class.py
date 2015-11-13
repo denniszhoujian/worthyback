@@ -142,7 +142,7 @@ class DataTask():
 
             tries = 0
             is_task_success = 0
-            last_complete_percent = 0
+            last_complete_percent = (self.num_all-self.num_remaining)/self.num_all*100.0
             while tries < TASK_TIMES_OF_RETRY_ON_ERROR:
                 tries += 1
                 try:
@@ -164,7 +164,7 @@ class DataTask():
                     # self.num_remaining -= 1.0
                     self.num_remaining -= len(group_task_list)
                     complete_percent = (self.num_all-self.num_remaining)/self.num_all*100.0
-                    if (complete_percent-last_complete_percent) > 19.9:
+                    if (complete_percent-last_complete_percent) >= 19.9999:
                         t_now = time.time()
                         logging.info("Tasks completed: %.1f%%, ellapsed seconds: %s" %(complete_percent,int(t_now-t_init)))
                         last_complete_percent = complete_percent
