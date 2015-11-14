@@ -47,6 +47,8 @@ cols_left = [
         'category_id'
     ]
 cols_deduction = [
+        'thumbnail_url',
+        'icon_url',
         'pid',
         'code',
         'name',

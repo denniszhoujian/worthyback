@@ -34,6 +34,8 @@ def calculate_price_table():
     h.price_m  as price_m,
     h.discount_rate as discount_rate,
     h.update_date as update_date,
+    h.thumbnail_url,
+    h.icon_url,
     b.a as a,
     b.b as b,
     b.c as c,
@@ -52,7 +54,9 @@ def calculate_price_table():
         max(price) as max_price,
         max(price_m) as price_m,
         price/max(price) as discount_rate,
-        max(update_date) as update_date
+        max(update_date) as update_date,
+        thumbnail_url,
+        icon_url
 
         from
         jd_item_dynamic
