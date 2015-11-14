@@ -1,31 +1,32 @@
 # encoding: utf-8
 from datasys import dbhelper,timeHelper,crawler_helper
 import rows_helper
+import math
 
 FINAL_DISCOUNT_RECENCY_HOURS = 36
 
 col_worthyvalue_weight_dict_1 = {
-            'discount_rate': 100,
-            'max_deduction_ratio': 130,
-            'discount': 100,
-            'rf_ratio': 100,
-            'gift_ratio': 30,
+            'discount_rate': 1,
+            'max_deduction_ratio': 1.3,
+            'discount': 1,
+            'rf_ratio': 1,
+            'gift_ratio': 0.5,
         }
 
 col_worthyvalue_weight_dict_deduct_even = {
-    'discount_rate': 100,
-    'max_deduction_ratio': 100,
-    'discount': 100,
-    'rf_ratio': 100,
-    'gift_ratio': 100,
+    'discount_rate': 1,
+    'max_deduction_ratio': 1,
+    'discount': 1,
+    'rf_ratio': 1,
+    'gift_ratio': 1,
 }
 
 col_worthyvalue_weight_dict_acitivity = {
     'discount_rate': 0,
-    'max_deduction_ratio': 130,
-    'discount': 100,
-    'rf_ratio': 100,
-    'gift_ratio': 30,
+    'max_deduction_ratio': 1.3,
+    'discount': 1,
+    'rf_ratio': 1,
+    'gift_ratio': 0.7,
 }
 
 cols_left = [
@@ -221,15 +222,11 @@ def _get_column_index(col_name):
 
 def _calculate_weighted_score(param_dict, weight_dict):
     value = float(1.0)
-    sum_weight = float(0.0)
-    sum_score = float(0.0)
     for param in param_dict:
         score = param_dict[param]
         weight = weight_dict[param]
-        sum_weight += weight
-        sum_score += score*weight
-    weighted_score = sum_score/sum_weight
-    return weighted_score
+        value = value * math.pow(score,weight)
+    return value
 
 # sku_info_list: format [(cols)]
 def _calculate_worthy_values(sku_info_list):
