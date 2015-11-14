@@ -6,6 +6,7 @@ import time
 from task_class import DataTask
 import jd_api_crawler
 import mylog
+import timeHelper
 
 reload(sys)
 sys.setdefaultencoding('utf8')
