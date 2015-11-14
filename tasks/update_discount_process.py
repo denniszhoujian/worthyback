@@ -9,12 +9,13 @@ func_list = [
 ]
 
 if __name__ == '__main__':
-    wp = WorthyProcessBase(
-        function_list=func_list,
-        is_daily=False,
-        start_hour=0, # no use
-        interval_secs=0,
-        min_sleep=60 # 10 mins
-    )
-    wp.run_tasks_repeated()
+    # wp = WorthyProcessBase(
+    #     function_list=func_list,
+    #     is_daily=False,
+    #     start_hour=0, # no use
+    #     interval_secs=0,
+    #     min_sleep=60 # 10 mins
+    # )
+    # wp.run_tasks_repeated()
+    pass
 

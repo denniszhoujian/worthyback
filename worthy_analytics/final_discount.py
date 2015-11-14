@@ -49,6 +49,8 @@ cols_deduction = [
         'pid',
         'code',
         'name',
+        'content',
+        'adurl',
         'title',
         'price',
         'is_repeat',
@@ -58,11 +60,8 @@ cols_deduction = [
         'dr_ratio',
         'maxp_ratio',
         'max_deduction_ratio',
-        'category_id',
         'category_name',
-        'code',
-        'content',
-        'adurl',
+
 
         'deduct_type',
         'reach_num',
@@ -84,6 +83,20 @@ cols_deduction = [
         'worthy_value2', #reserved
         'price1', # reserved
         'price2', # reserved
+
+        'first_seen_date',
+
+        'comment_count',
+        'rating_score',
+        'category_rating_score',
+        'rating_score_diff',
+        'rate_1',
+        'category_rate_1',
+        'rate_1_diff',
+        'rate_good',
+        'category_rate_good',
+        'rate_good_diff',
+
     ]
 
 def _get_deduction_dict():
@@ -125,8 +138,6 @@ def _get_discount_dict():
         jd_analytic_promo_discount_latest
         where origin_dt>'%s'
     ''' %hours_ahead
-    # print sql_deduction
-
     retrows_deduction = dbhelper.executeSqlRead(sql_deduction, is_dirty=True, isolation_type='read-committed')
     dict_deduction = rows_helper.transform_retrows_to_dict(retrows_deduction, 'sku_id')
     return dict_deduction
@@ -146,6 +157,22 @@ def _get_gift_dict():
     dict_deduction = rows_helper.transform_retrows_to_dict(retrows_deduction, 'sku_id')
     return dict_deduction
 
+def _get_item_firstseen_dict():
+    sql_deduction = '''
+        select sku_id,first_seen_date from jd_item_firstseen
+    '''
+    retrows_deduction = dbhelper.executeSqlRead(sql_deduction, is_dirty=True)
+    dict_deduction = rows_helper.transform_retrows_to_dict(retrows_deduction, 'sku_id')
+    return dict_deduction
+
+def _get_rating_dict():
+    sql_deduction = '''
+        select * from jd_analytic_item_rating_diff
+    '''
+    retrows_deduction = dbhelper.executeSqlRead(sql_deduction, is_dirty=True)
+    dict_deduction = rows_helper.transform_retrows_to_dict(retrows_deduction, 'sku_id')
+    return dict_deduction
+
 def _memory_left_join(tbl_left_as_rows, tbl_right_as_dict, col_name_list_left, col_name_list_right, key_col_name='sku_id'):
     # first, join left retrows with right as dict using dict-key, returning a dict
     vlist = []
@@ -160,16 +187,32 @@ def _memory_left_join(tbl_left_as_rows, tbl_right_as_dict, col_name_list_left, c
     tlist = []
     for rdict in vlist:
         tp = []
+        i = 0
         for name in col_name_list_left:
             tp.append(rdict[name])
+            # print "%s\t%s" %(i,name)
+            i+=1
         for name in col_name_list_right:
+            # print "%s\t%s" %(i,name)
+            i+=1
             if name in rdict:
                 tp.append(rdict[name])
             else:
                 tp.append(None)
         tlist.append(tp)
-
+        # print tp
+        # print len(tp)
+        # exit()
     return tlist
+
+def _merge_dict_under_key(dict_change, copy_dict_list):
+    for key in dict_change:
+        for dict_copy in copy_dict_list:
+            if key in dict_copy:
+                cdict = dict_change[key]
+                for kk in dict_copy[key]:
+                    cdict[kk] = dict_copy[key][kk]
+    return 0
 
 def _get_column_index(col_name):
     col_list = cols_left + cols_deduction
@@ -226,24 +269,42 @@ def _calculate_worthy_values(sku_info_list):
 
 def match_discounts():
 
-    print('>>> 1/6 >>> Reading jd_price_temp_latest...')
+    print('>>> 1/8 >>> Reading jd_price_temp_latest...')
     sql_price = 'select * from jd_price_temp_latest'
     retrows_price = dbhelper.executeSqlRead(sql_price, is_dirty=True)
     print('rows read: %s' %len(retrows_price))
 
-    print('>>> 2/6 >>> Reading strongest deductions of each sku...')
+    print('>>> 2/8 >>> Reading strongest deductions of each sku...')
     deduction_dict = _get_deduction_dict()
     print('rows read: %s' %len(deduction_dict))
 
-    print('>>> 3/6 >>> Reading discounts of each sku...')
+    print('>>> 3/8 >>> Reading discounts of each sku...')
     discount_dict = _get_discount_dict()
     print('rows read: %s' %len(discount_dict))
 
-    print('>>> 4/6 >>> Reading gifts of each sku...')
+    print('>>> 4/8 >>> Reading gifts of each sku...')
     gift_dict = _get_gift_dict()
     print('rows read: %s' %len(gift_dict))
 
-    print('>>> 5/6 >>> Joining results in memory...')
+    print('>>> 5/8 >>> Reading first seen date of each sku...')
+    first_seen_dict = _get_item_firstseen_dict()
+    print('rows read: %s' %len(first_seen_dict))
+
+    print('>>> 6/8 >>> Reading ratings of each sku...')
+    rating_dict = _get_rating_dict()
+    print('rows read: %s' %len(rating_dict))
+
+    print('>>> 7/8 >>> Joining results in memory...')
+
+    _merge_dict_under_key(
+        deduction_dict,
+        [
+            discount_dict,
+            gift_dict,
+            first_seen_dict,
+            rating_dict,
+        ]
+    )
 
     tlist = _memory_left_join(retrows_price,deduction_dict,
                               col_name_list_left=cols_left,
@@ -251,10 +312,11 @@ def match_discounts():
                               )
     print('rows generated: %s' %len(tlist))
 
-    print '>>> 6/6 >>> Calculating worhty_values...'
+    print '>>> 8/8 >>> Calculating worhty_values...'
     _calculate_worthy_values(tlist)
+    print 'num cols = %s ' %len(tlist[0])
 
-    print 'Saving to DB...'
+    print '>>> 9/9 >>> Saving to DB...'
     ret = crawler_helper.persist_db_history_and_latest(
         table_name='jd_worthy',
         num_cols=len(tlist[0]),

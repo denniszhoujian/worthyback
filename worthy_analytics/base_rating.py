@@ -25,6 +25,7 @@ def calculate_base_rating_for_categories():
         tp.append(row['sum_4'])
         tp.append(row['sum_5'])
         tp.append(row['comment_count'])
+        tp.append(row['rating_score'])
         tp.append(row['rate_1'])
         tp.append(row['rate_2'])
         tp.append(row['rate_3'])
@@ -50,6 +51,9 @@ def calculate_base_rating_for_categories():
 def getSqlCatRating():
 
     today = timeHelper.getNow()
+    #### SAMPLE_COUNT means number of SKUs having comment_count > min_req so as to be involved in stats.
+    # SMPLE_COUNT is NOT num of comments
+    ####
     sql  = '''
         select e.*,'%s' as dt,c.name from (
         select
@@ -61,6 +65,7 @@ def getSqlCatRating():
         sum(a.Score4Count) as sum_4,
         sum(a.Score5Count) as sum_5,
         sum(a.Score1Count+a.Score2Count+a.Score3Count+a.Score4Count+a.Score5Count) as comment_count,
+        (sum(a.Score1Count)*1+sum(a.Score2Count)*2+sum(a.Score3Count)*3+sum(a.Score4Count)*4+sum(a.Score5Count)*5)/sum(a.Score1Count+a.Score2Count+a.Score3Count+a.Score4Count+a.Score5Count) as rating_score,
         sum(a.Score1Count)/(sum(a.Score1Count+a.Score2Count+a.Score3Count+a.Score4Count+a.Score5Count)+1) as rate_1,
         sum(a.Score2Count)/(sum(a.Score1Count+a.Score2Count+a.Score3Count+a.Score4Count+a.Score5Count)+1) as rate_2,
         sum(a.Score3Count)/(sum(a.Score1Count+a.Score2Count+a.Score3Count+a.Score4Count+a.Score5Count)+1) as rate_3,
@@ -72,7 +77,7 @@ def getSqlCatRating():
 
         from
 
-        (select * from jd_item_comment_count_latest where CommentCount>100) a
+        (select * from jd_item_comment_count_latest where CommentCount>=100) a
         left join
         jd_item_category b
         on a.SkuId = b.sku_id

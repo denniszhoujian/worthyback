@@ -17,6 +17,10 @@ def calculate_rating_diff() :
         a.CommentCount,
         c.sample_count as category_sample_count,
 
+        ((a.Score1Count)*1.0+(a.Score2Count)*2.0+(a.Score3Count)*3.0+(a.Score4Count)*4.0+(a.Score5Count)*5.0)/a.CommentCount as rating_score,
+        c.rating_score as category_rating_score,
+         ((a.Score1Count)*1.0+(a.Score2Count)*2.0+(a.Score3Count)*3.0+(a.Score4Count)*4.0+(a.Score5Count)*5.0)/a.CommentCount*1.0/c.rating_score as rating_score_diff,
+
         (a.Score4Count+a.Score5Count)/a.CommentCount as rate_good,
         c.rate_good as category_rate_good,
         Format(((a.Score4Count+a.Score5Count)/a.CommentCount - c.rate_good)*100/c.rate_good,1) as rate_good_diff,
@@ -66,7 +70,7 @@ def calculate_rating_diff() :
     ''' %timeHelper.getNow()
 
     # print sql
-    afr = dbhelper.executeSqlWrite1(sql)
+    afr = dbhelper.executeSqlWrite1(sql,is_dirty=True,isolation_type='serializable')
 
     return afr
 

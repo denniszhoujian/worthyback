@@ -7,7 +7,7 @@ func_list = [
     promo_item_trans.processItemPromo,      # 90 secs
     promo_item_trans.process_promo_detail,  # 10 secs
     promo_item_trans.process_gift_value,    # 2 secs
-    final_discount.match_discounts,         # 25 secs
+    final_discount.match_discounts,         # 300 secs
 ]
 
 if __name__ == '__main__':

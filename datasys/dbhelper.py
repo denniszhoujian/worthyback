@@ -12,13 +12,13 @@ def getConnection():
     conn = MySQLdb.connect(host=datadict['host'], user=datadict['user'], passwd=datadict['passwd'], db=datadict['db'], port=datadict['port'], charset='utf8')
     return conn
 
-def executeSqlWrite1(sql, is_dirty=False):
+def executeSqlWrite1(sql, is_dirty=False,isolation_type="read-uncommitted"):
     conn = getConnection()
     try:
         cursor1 = conn.cursor(MySQLdb.cursors.DictCursor)
         #sql = MySQLdb.escape_string(sql)
         if is_dirty:
-            cursor1.execute('set @@session.tx_isolation="read-uncommitted"')
+            cursor1.execute('set @@session.tx_isolation="%s"' %isolation_type)
         retrows = cursor1.execute(sql)
         conn.commit()
         affected_rows = cursor1.rowcount
