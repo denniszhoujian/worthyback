@@ -14,7 +14,8 @@ reload(sys)
 sys.setdefaultencoding('utf8')
 
 # set to 0.1 has problem, try 0.5
-SLEEP_TIME = 0.5
+SLEEP_TIME = 0.3
+SLEEP_PRICE_API = 0.1
 
 def __get_category_page_url__(category_id, page_num=1):
     # http://list.jd.com/list.html?cat=9987%2C653%2C655&delivery=1&page=1&stock=0
@@ -69,7 +70,7 @@ def crawl_category(category_id):
         sku_list.append(sku_id)
 
     # Get price of all products
-    price_obj = jd_API.getPrices_JD(sku_list)
+    price_obj = jd_API.getPrices_JD(sku_list,sleep_time=SLEEP_PRICE_API)
 
     ret_obj = {
         'status': -1,
@@ -83,8 +84,6 @@ def crawl_category(category_id):
     # print '='*80
 
     # combine product list and price list, timestamp, category_id
-    # nowtime = timeHelper.getNowLong()
-    # nowdate = timeHelper.getNow()
     for i in xrange(total_goods_num):
         product_id = product_list[i][0]
         pkey = '%s' %product_id
@@ -113,6 +112,7 @@ def crawl_category(category_id):
     logging.debug('Saved to DB -- category_id = %s -- sku_count=%s' %(category_id,total_goods_num))
     logging.debug('%s' %ret)
 
+    # HANDLE JD_ITEM_CATEGORY
     item_cat_list = []
     for prod in product_list:
         item_cat_list.append((prod[0],category_id,))
@@ -122,10 +122,21 @@ def crawl_category(category_id):
     if affected_rows2<=0:
         logging.error('Saving to item_category error, category_id = %s' %category_id)
 
+
+    # HANDLE JD_ITEM_FIRSTSEEN
+    nowtime = timeHelper.getNowLong()
+    nowdate = timeHelper.getNow()
+    sql3 = 'insert ignore into jd_item_firstseen values(%s,"%s","%s")'
+    ftlist = []
+    for item in product_list:
+        ftlist.append([item[0],nowtime,nowdate])
+    affected_rows3 = dbhelper.executeSqlWriteMany(sql3,ftlist)
+
     ret_obj = {
         'status': 0 if ret['status']==0 and affected_rows2>0 else -1,
         'item_dynamic': ret,
-        'item_category': affected_rows2
+        'item_category': affected_rows2,
+        'item_first_seen': affected_rows3,
     }
 
     return ret_obj

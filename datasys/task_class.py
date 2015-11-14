@@ -66,7 +66,7 @@ class DataTask():
             stime = timeHelper.getTimeAheadOfNowHours(self.interval_hours,format='%Y-%m-%d %H:%M:%S')
             sql = 'select task_id from task_status where job_name="%s" and update_time>="%s" group by task_id' %(self.job_name,stime)
         # print sql
-        retrows = dbhelper.executeSqlRead(sql)
+        retrows = dbhelper.executeSqlRead(sql,is_dirty=True)
         catlist = []
         for row in retrows:
             catlist.append("%s" %row['task_id'])
@@ -164,7 +164,7 @@ class DataTask():
                     # self.num_remaining -= 1.0
                     self.num_remaining -= len(group_task_list)
                     complete_percent = (self.num_all-self.num_remaining)/self.num_all*100.0
-                    if (complete_percent-last_complete_percent) >= 19.9999:
+                    if (complete_percent-last_complete_percent) >= 9.9999:
                         t_now = time.time()
                         logging.info("Tasks completed: %.1f%%, ellapsed seconds: %s" %(complete_percent,int(t_now-t_init)))
                         last_complete_percent = complete_percent
@@ -193,14 +193,14 @@ class DataTask():
             if self.is_daily:
                 remaining = timeHelper.getTimeLeftTillTomorrow()
             else:
-                remaining = self.interval_hours * 3600 - (t2-t1)
+                remaining = int(self.interval_hours * 3600 - (t2-t1))
                 if remaining < 0:
                     remaining = 0
             remaining += 10
             logging.info('='*80)
             logging.info('Finished crawling, using time: %s seconds' %(t2-t1))
             logging.info('Has Errors? %s' %('NO' if is_success==1 else 'YES'))
-            logging.info('Now sleeping for %s seconds for next run' %(remaining))
+            logging.info('Now sleeping for %s seconds for next run (%.1f hours)' %(remaining,remaining/3600))
             logging.info('='*80)
             time.sleep(remaining)
 

@@ -2,6 +2,9 @@
 
 import dbhelper
 import MySQLdb
+import time
+import logging
+
 
 def persist_db_history_and_latest(table_name, num_cols, value_list, is_many=True, need_history=False):
     tbl_latest = '%s_latest' %table_name
@@ -10,12 +13,19 @@ def persist_db_history_and_latest(table_name, num_cols, value_list, is_many=True
         ps_list.append('%s')
     values_str = ','.join(ps_list)
 
+
+    t1 = time.time()
     affected_rows = 99999
     if need_history:
         sql = 'replace into %s values(%s)' %(table_name,values_str)
         affected_rows = dbhelper.executeSqlWriteMany(sql,value_list)
+        t2 = time.time()
+        logging.debug('persist_db_history_and_latest, history using time: %s' %(t2-t1))
+    t22 = time.time()
     sql2 = 'replace into %s values(%s)' %(tbl_latest,values_str)
     affected_rows2 = dbhelper.executeSqlWriteMany(sql2,value_list)
+    t3 = time.time()
+    logging.debug('persist_db_history_and_latest, latest using time: %s' %(t3-t22))
     status = -1
     if affected_rows>0 and affected_rows2>0:
         status = 0

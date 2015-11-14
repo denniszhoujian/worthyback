@@ -82,7 +82,7 @@ def __getPrices_JD_100__(sku_list):
             item['pcp'] = None
     return obj
 
-def getPrices_JD(sku_list):
+def getPrices_JD(sku_list,sleep_time=SLEEP_TIME):
     logging.debug('sku_list len: %s' %len(sku_list))
     iters = len(sku_list)//100+1
     price_list = []
@@ -98,7 +98,7 @@ def getPrices_JD(sku_list):
         price_list = price_list + list3
 
         if i>0:
-            time.sleep(SLEEP_TIME)
+            time.sleep(sleep_time)
 
     return __transform_price_list_to_map__(price_list)
 

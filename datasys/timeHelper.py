@@ -6,6 +6,9 @@ import math
 
 HOURS_OFFSET = 8
 
+FORMAT_LONG = '%Y-%m-%d %H:%M:%S'
+FORMAT_SHORT = '%Y-%m-%d'
+
 def getTimeAheadOfNowDays(num_days, format='%Y-%m-%d'):
     d1 = datetime.datetime.now()
     d3 = d1 - datetime.timedelta(days=num_days)

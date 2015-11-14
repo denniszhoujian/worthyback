@@ -63,13 +63,13 @@ def executeSqlWriteMany(sql, vlist, is_dirty=False):
         conn.close()
     return affected_rows
 
-def executeSqlRead(sql, is_dirty=False):
+def executeSqlRead(sql, is_dirty=False, isolation_type="read-uncommitted"):
     conn = getConnection()
     retrows = {}
     try:
         cursor1 = conn.cursor(MySQLdb.cursors.DictCursor)
         if is_dirty:
-            cursor1.execute('set @@session.tx_isolation="read-uncommitted"')
+            cursor1.execute('set @@session.tx_isolation="%s"' %isolation_type)
         cursor1.execute(sql)
         retrows = cursor1.fetchall()
     finally:
