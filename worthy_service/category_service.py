@@ -47,18 +47,21 @@ def getServiceCategoryListAll(level = 1):
         return mv
 
     white_list = []
-    sql = 'select * from jd_category_white_list where is_service=1'
+    sql = 'select category_id, category_name from jd_category_white_list where is_service=1'
     retrows = dbhelper_read.executeSqlRead(sql)
     for row in retrows:
         white_list.append(row['category_id'])
 
     retlist = []
+    for row in retrows:
+        retlist.append(row)
+    if level==0:
+        return retlist
 
     for catid in white_list:
         sql2 = '''
-          select * from jd_category where (id='%s' or id like '%s-%%')
+          select id as category_id, name as category_name from jd_category where (id='%s' or id like '%s-%%')
           and (LENGTH(id) - LENGTH(REPLACE(id,"-", ""))) / LENGTH("-") <= %s
-          order by id ASC
         ''' %(catid, catid, level)
         #print sql2
         retrows2 = dbhelper_read.executeSqlRead(sql2)

@@ -65,7 +65,7 @@ def calculate_rating_diff() :
         left join
         jd_category d
         on d.id = c.category_id
-        where a.CommentCount>100
+        where a.CommentCount>0
 
     ''' %timeHelper.getNow()
 
