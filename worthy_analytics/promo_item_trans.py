@@ -136,7 +136,7 @@ def processItemPromo():
         for tag in tags:
             pid = tag['pid']
             code = tag['code']
-            name = tag['name']
+            name = tag['name'] if 'name' in tag else ""
             if code == "10":
                 # gift
                 gifts = tag['gifts']
@@ -589,7 +589,7 @@ def process_promo_detail():
 
 if __name__ == "__main__":
     # print processItemPromo()
-    # print process_gift_value()
+    print process_gift_value()
     print process_promo_detail()
     # update_promo_results()
 
