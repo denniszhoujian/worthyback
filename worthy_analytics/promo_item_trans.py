@@ -418,17 +418,24 @@ def process_promo_detail():
                 num_15_repeated += 1
 
         elif code == 19:
+
+            sku_str = "%s" %sku_id
+            if sku_str == "264212":
+                print "haha"
+
             num_19 += 1
             # 满几件打折或者降低多少
             type_word_list = ["总价打","商品价格"]
             # 0: 直接打折
             # 1: 减商品价格
             # 2: 其他
-            deduct_type = 2
+            deduct_type = 0
             for type_word in type_word_list:
                 if content.find(type_word) >= 0:
-                    deduct_type = 0
+                    # deduct_type = 0
                     break
+                deduct_type += 1
+
             if deduct_type==2:
                 print "NEW TYPE OF DISCOUNT FOUND!!!"
                 print content
@@ -441,11 +448,11 @@ def process_promo_detail():
                     print content
                     print "NEW PATTERN ABOVE"
             reach_num = discount = free_num = rf_ratio = None
-            reach_num = pts[0]
+            reach_num = float(pts[0])
             if deduct_type==0:
                 discount = pts[1]
             elif deduct_type==1:
-                free_num = pts[1]
+                free_num = float(pts[1])
                 rf_ratio = float(free_num*1.0/reach_num)
 
             tp19 =[sku_id, dt, title, price, deduct_type, reach_num, discount, free_num, rf_ratio, category_id, category_name, pid, code, name, content, adurl, origin_dt]
@@ -581,8 +588,8 @@ def process_promo_detail():
 
 
 if __name__ == "__main__":
-    print processItemPromo()
-    print process_gift_value()
+    # print processItemPromo()
+    # print process_gift_value()
     print process_promo_detail()
     # update_promo_results()
 

@@ -100,6 +100,10 @@ cols_deduction = [
         'category_rate_good',
         'rate_good_diff',
 
+        'content_deduction',
+        'content_discount',
+        'final_price',
+
     ]
 
 def _get_deduction_dict():
@@ -129,6 +133,8 @@ def _get_deduction_dict():
     ''' %hours_ahead
 
     retrows_deduction = dbhelper.executeSqlRead(sql_deduction, is_dirty=True, isolation_type='read-committed')
+    for row in retrows_deduction:
+        row['content_deduction'] = row['content']
     dict_deduction = rows_helper.transform_retrows_to_dict(retrows_deduction, 'sku_id')
     return dict_deduction
 
@@ -142,6 +148,8 @@ def _get_discount_dict():
         where origin_dt>'%s'
     ''' %hours_ahead
     retrows_deduction = dbhelper.executeSqlRead(sql_deduction, is_dirty=True, isolation_type='read-committed')
+    for row in retrows_deduction:
+        row['content_discount'] = row['content']
     dict_deduction = rows_helper.transform_retrows_to_dict(retrows_deduction, 'sku_id')
     return dict_deduction
 
@@ -230,6 +238,48 @@ def _calculate_weighted_score(param_dict, weight_dict):
         value = value * math.pow(score,weight)
     return value
 
+def caculate_final_price(worthy_row, price=None):
+    if price is None:
+        col_index = _get_column_index('current_price')
+        val = worthy_row[col_index]
+        price = float(val)
+
+    # deduction
+    could_deduct = 0
+    reach  = worthy_row[_get_column_index('reach')]
+    if reach is not None:
+        if price >= reach and reach>0:
+            is_repeat = worthy_row[_get_column_index('is_repeat')]
+            deduction = worthy_row[_get_column_index('deduction')]
+            max_deduction = worthy_row[_get_column_index('max_deduction')]
+
+            if is_repeat:
+                times = price // reach
+            else:
+                times = 1
+
+            could_deduct = times * deduction
+            if could_deduct > max_deduction:
+                could_deduct = max_deduction
+
+    deduct_discount_rate = 1.0
+    try:
+        deduct_discount_rate = (price*1.0-could_deduct*1.0)/price
+    except Exception as e:
+        print e
+        print "price = %s" %price
+        print "sku_id = %s" %worthy_row[_get_column_index('sku_id')]
+        print "could_deduct = %s" %could_deduct
+
+    # discount
+    dr = 1.0
+    reach_num = worthy_row[_get_column_index('reach_num')]
+    if reach_num is not None:
+        if reach_num == 1:
+            dr = float(worthy_row[_get_column_index('discount')])/10  # MUST DIVIDE BY 10
+    final_dr = deduct_discount_rate if deduct_discount_rate <= dr else dr
+    return final_dr * price
+
 # sku_info_list: format [(cols)]
 def _calculate_worthy_values(sku_info_list):
     for sku in sku_info_list:
@@ -260,6 +310,8 @@ def _calculate_worthy_values(sku_info_list):
 
         value3 = _calculate_weighted_score(param_dict, col_worthyvalue_weight_dict_deduct_even)
         sku[_get_column_index('total_discount_rate')] = value3
+
+        sku[_get_column_index('final_price')] = caculate_final_price(sku,price=None)
 
         # if value1<1:
         #     print
@@ -332,5 +384,6 @@ if __name__ == '__main__':
     import time
     t1 = time.time()
     match_discounts()
+    # _get_deduction_dict()
     t2 = time.time()
     print "time used: %s" %int(t2-t1)

@@ -27,7 +27,7 @@ def getSkuInfoForList(sku_list):
 def getDiscountItemsAll(category_id = "_ALL_", startpos = 0, min_allowed_price=20, min_allowed_discount_rate=0.75):
 
     kstr = memcachedStatic.getKey(category_id)
-    mckey = "getDiscountItemsAll6_%s_%s_%s_%s" %(kstr, startpos, min_allowed_price,min_allowed_discount_rate)
+    mckey = "getDiscountItemsAll7_%s_%s_%s_%s" %(kstr, startpos, min_allowed_price,min_allowed_discount_rate)
     print "memcache key = %s" %mckey
     mcv = None
     mcv = mc.get(mckey)
@@ -48,7 +48,7 @@ def getDiscountItemsAll(category_id = "_ALL_", startpos = 0, min_allowed_price=2
             select * from jd_worthy_latest
             where
             category_id like '%s%%'
-            and worthy_value1 < %s
+            -- and worthy_value1 < %s
             and price > %s
             order by worthy_value1 ASC
             limit %s, %s
@@ -66,7 +66,7 @@ def getDiscountItemsAll(category_id = "_ALL_", startpos = 0, min_allowed_price=2
             price_map = jd_API.getSkuListPrice_Mob_Realtime(skulist)
             for row in retrows:
                 sku_id = row['sku_id']
-                row['price'] = price_map["%s" %sku_id]
+                row['price'] = float(price_map["%s" %sku_id])
         except Exception as e:
             print "ERROR in real-time-price retreaval in jd_API"
             print e
@@ -74,12 +74,11 @@ def getDiscountItemsAll(category_id = "_ALL_", startpos = 0, min_allowed_price=2
     # calculate final_price, final_discount
     for row in retrows:
         price = float(row['price'])
-        final_price = price
-        if row['reach'] is not None:
-            final_price *= (1.0 - float(row['max_deduction_ratio']))
-        # if row['reach_num'] is not None:
-        #     final_price *= float(row[''])
-        row['final_price'] = final_price
+        row['price'] = price
+        # final_price = price
+        # if row['reach'] is not None:
+        #     final_price *= (1.0 - float(row['max_deduction_ratio']))
+        # row['final_price'] = final_price
 
         diff_stars = None
         if row['rating_score_diff'] is not None:
@@ -107,5 +106,5 @@ def getDiscountItemsAll(category_id = "_ALL_", startpos = 0, min_allowed_price=2
 
 if __name__ == "__main__":
 
-    getDiscountItemsAll(0)
+    getDiscountItemsAll()
 
