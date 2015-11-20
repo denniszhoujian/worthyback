@@ -12,6 +12,9 @@ CACHE_TIME_OUT = 3600
 MIN_PRICE_FOR_EXPENSIVE = 800
 IF_USE_REAL_TIME_PRICE = False
 
+DEFAULT_MIN_ALLOWED_PRICE = 20
+DEFAULT_MIN_ALLOWED_WORTHY_VALUE = 0.85
+
 def getSkuInfoForList(sku_list):
 
     vlist = []
@@ -24,10 +27,10 @@ def getSkuInfoForList(sku_list):
     return vlist
 
 
-def getDiscountItemsAll(category_id = "_ALL_", startpos = 0, min_allowed_price=20, min_allowed_discount_rate=0.75):
+def getDiscountItemsAll(category_id = "_EXPENSIVE_", startpos = 0, min_allowed_price=DEFAULT_MIN_ALLOWED_PRICE, min_allowed_discount_rate=DEFAULT_MIN_ALLOWED_WORTHY_VALUE):
 
     kstr = memcachedStatic.getKey(category_id)
-    mckey = "getDiscountItemsAll7_%s_%s_%s_%s" %(kstr, startpos, min_allowed_price,min_allowed_discount_rate)
+    mckey = "getDiscountItemsAll8_%s_%s_%s_%s" %(kstr, startpos, min_allowed_price,min_allowed_discount_rate)
     print "memcache key = %s" %mckey
     mcv = None
     mcv = mc.get(mckey)
@@ -48,8 +51,8 @@ def getDiscountItemsAll(category_id = "_ALL_", startpos = 0, min_allowed_price=2
             select * from jd_worthy_latest
             where
             category_id like '%s%%'
-            -- and worthy_value1 < %s
-            and price > %s
+            and worthy_value1 < %s
+            and current_price > %s
             order by worthy_value1 ASC
             limit %s, %s
         ''' %(category_id, min_allowed_discount_rate, min_allowed_price, startpos+1, FRAME_SIZE)

@@ -104,6 +104,8 @@ cols_deduction = [
         'content_discount',
         'final_price',
 
+        'this_update_time',
+
     ]
 
 def _get_deduction_dict():
@@ -312,6 +314,9 @@ def _calculate_worthy_values(sku_info_list):
         sku[_get_column_index('total_discount_rate')] = value3
 
         sku[_get_column_index('final_price')] = caculate_final_price(sku,price=None)
+
+        nowtime = timeHelper.getNowLong()
+        sku[_get_column_index('this_update_time')] = nowtime
 
         # if value1<1:
         #     print
