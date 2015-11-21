@@ -4,7 +4,7 @@ from process_class import WorthyProcessBase
 from worthy_analytics import promo_item_trans, worthy_mix, base_price
 
 func_list = [
-    base_price.calculate_price_table,
+    base_price.calculate_min_max_price,     # 90 secs
     promo_item_trans.processItemPromo,      # 90 secs
     promo_item_trans.process_promo_detail,  # 10 secs
     promo_item_trans.process_gift_value,    # 2 secs

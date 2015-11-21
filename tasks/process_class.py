@@ -41,7 +41,7 @@ class WorthyProcessBase:
             try:
 
                 ret = func()
-                print "\t##### func %s returning value: %s ######" %(func, ret)
+                print "\t##### func %s returning value: %s ######\n\n\n\n\n\n" %(func, ret)
 
             except Exception as e:
                 print "ERROR GREP LINE >>>>>>>>" * 5

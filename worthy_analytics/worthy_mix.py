@@ -4,15 +4,8 @@ from datasys import dbhelper,crawler_helper
 import math
 import rows_helper
 import time
+from worthy_analytics import datamining_config
 
-col_worthyvalue_weight_dict_1 = {
-            'discount_rate': 2.0,
-            'max_deduction_ratio': 2.0,
-            'deduction_score': 1.0,
-            'discount': 1.0,
-            'rf_ratio': 1.0,
-            'gift_ratio': 0.3,
-        }
 
 col_worthyvalue_weight_dict_deduct_even = {
     'discount_rate': 1,
@@ -39,6 +32,7 @@ worthy_columns = [
     'category_name',
     'current_price',
     'average_price',
+    'median_price',
     'min_price',
     'max_price',
     'discount_rate',
@@ -93,18 +87,19 @@ def _get_merged_tables():
     select
     a.sku_id as sku_id,
     CURRENT_TIMESTAMP() as this_update_time,
-    a.category_id,
+    j.category_id as category_id,
     h.name as category_name,
-    a.current_price as current_price,
+    b.price as current_price,
     a.average_price as average_price,
+    a.median_price,
     a.min_price,
     a.max_price,
-    a.discount_rate,
-    a.a,
-    a.b,
-    a.c,
-    a.j,
-    a.l,
+    b.price/a.median_price as discount_rate,
+    k.a,
+    k.b,
+    k.c,
+    k.j,
+    k.l,
 
     b.title,
     b.thumbnail_url,
@@ -146,7 +141,7 @@ def _get_merged_tables():
 
     from
 
-    jd_price_temp_latest a
+    jd_analytic_price_stat_latest a
     left join jd_item_dynamic_latest b
     on a.sku_id = b.sku_id
 
@@ -165,10 +160,16 @@ def _get_merged_tables():
     left join jd_item_firstseen g
     on a.sku_id = g.sku_id
 
-    left join jd_category h
-    on a.category_id = h.id
+    left join jd_item_stock_latest k
+    on a.sku_id = k.sku_id
 
-    where a.current_price > 0
+    left join jd_item_category j
+    on a.sku_id = j.sku_id
+
+    left join jd_category h
+    on j.category_id = h.id
+
+    where b.price > 0
     '''
 
     retrows = dbhelper.executeSqlRead(sql, is_dirty=True)
@@ -270,7 +271,7 @@ def _calculate_worthy_values(worthy_rows):
 
 
         # The most easy algorithm to calculate final worthy score
-        value1 = _calculate_weighted_score(param_dict, col_worthyvalue_weight_dict_1)
+        value1 = _calculate_weighted_score(param_dict, datamining_config.col_worthyvalue_weight_dict_1)
         sku['worthy_value1'] = value1
 
         value2 = _calculate_weighted_score(param_dict, col_worthyvalue_weight_dict_acitivity)
@@ -288,7 +289,7 @@ def generate_worthy_mix_main():
     print '1/4 >>> Join all related tables: price_temp, dynamic, deduction, discount, gift, rating, last-seen, etc...'
     worthy_rows = _get_merged_tables()
     t2 = time.time()
-    print 'Done, using seconds: %s\n' %(t2-t1)
+    print 'Done, rows read: %s, using seconds: %s\n' %(len(worthy_rows), (t2-t1))
 
     print '2/4 >>> Calculating worthy scores and final price'
     _calculate_worthy_values(worthy_rows)

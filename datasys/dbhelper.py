@@ -46,13 +46,13 @@ def executeSqlWrite(sql, vlist, is_dirty=False):
         conn.close()
     return affected_rows
 
-def executeSqlWriteMany(sql, vlist, is_dirty=False):
+def executeSqlWriteMany(sql, vlist, is_dirty=False, isolation_type="serializable"):
     conn = getConnection()
     affected_rows = 0
     try:
         cursor1 = conn.cursor()
         if is_dirty:
-            cursor1.execute('set @@session.tx_isolation="read-committed"')
+            cursor1.execute('set @@session.tx_isolation="%s"' %isolation_type)
         cursor1.executemany(sql, vlist)
         conn.commit()
         affected_rows = cursor1.rowcount

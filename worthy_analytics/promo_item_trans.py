@@ -6,6 +6,7 @@ import json
 from datasys import jd_API
 import MySQLdb
 import re
+import datamining_config
 
 MAX_DEDUCTION_CONSTANT = 99999999
 
@@ -88,15 +89,15 @@ MAX_DEDUCTION_CONSTANT = 99999999
 #     # print json.dumps(adict)
 #     print "ok"
 
-PROCESS_RAW_PROMO_RECENCY_HOURS = 12
-PROCESS_PROMO_DETAIL_RECENCY_HOURS = 12
+# PROCESS_RAW_PROMO_RECENCY_HOURS = 12
+# PROCESS_PROMO_DETAIL_RECENCY_HOURS = 12
 
 def processItemPromo():
     vlist = []
     glist = []
     update_date = timeHelper.getNowLong()
-    recent = timeHelper.getTimeAheadOfNowHours(PROCESS_RAW_PROMO_RECENCY_HOURS,'%Y-%m-%d %H:%M:%S')
-    print 'A long query will be running now, need wait...'
+    recent = timeHelper.getTimeAheadOfNowHours(datamining_config.PROMO_ITEM_RECENCY_HOURS,timeHelper.FORMAT_LONG)
+    print 'Reading jd_promo_item_latest...'
     sql = '''
         select sku_id, dt, promo_json from jd_promo_item_latest
         where promo_json is not NULL and LENGTH(promo_json)>100
@@ -161,6 +162,38 @@ def processItemPromo():
     print 'vlist len: %s' %len(vlist)
     print 'glist len: %s' %len(glist)
 
+    sql_cb_promo_item = '''
+        CREATE TABLE jd_analytic_promo_item_latest (
+          sku_id bigint(20) NOT NULL,
+          dt datetime NOT NULL,
+          pid varchar(255) NOT NULL,
+          code varchar(255) NOT NULL,
+          name varchar(255) NOT NULL,
+          content varchar(255) NOT NULL,
+          adurl varchar(255) DEFAULT NULL,
+          update_date datetime NOT NULL,
+          PRIMARY KEY (sku_id,pid)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+    '''
+
+    sql_cb_promo_gift = '''
+        CREATE TABLE jd_analytic_promo_gift_latest (
+          sku_id bigint(20) NOT NULL,
+          dt datetime NOT NULL,
+          pid varchar(255) NOT NULL,
+          code varchar(255) NOT NULL,
+          name varchar(255) NOT NULL,
+          gift_name varchar(255) NOT NULL,
+          gift_num int(11) NOT NULL,
+          gift_image varchar(255) DEFAULT NULL,
+          gift_sku_id bigint(20) NOT NULL,
+          gift_gt varchar(255) DEFAULT NULL,
+          gift_gs varchar(255) DEFAULT NULL,
+          update_date datetime NOT NULL,
+          PRIMARY KEY (sku_id,pid)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+    '''
+
     # persist in DB
     ret1 = ret2 = None
     if len(vlist)>0:
@@ -168,7 +201,9 @@ def processItemPromo():
             table_name='jd_analytic_promo_item',
             num_cols=len(vlist[0]),
             value_list=vlist,
-            is_many=True
+            is_many=True,
+            need_history=False,
+            sql_create_table=sql_cb_promo_item,
         )
     print "ret1 for promo = %s" %ret1
     if len(glist)>0:
@@ -176,7 +211,9 @@ def processItemPromo():
             table_name='jd_analytic_promo_gift',
             num_cols=len(glist[0]),
             value_list=glist,
-            is_many=True
+            is_many=True,
+            need_history=False,
+            sql_create_table=sql_cb_promo_gift,
         )
     print "ret2 for gift = %s" %ret2
     return _generate_mixed_ret([ret1,ret2])
@@ -195,7 +232,7 @@ def _generate_mixed_ret(ret_list):
 ## 下面方法必须在当天处理完promo_item的gift数据之后运行
 def process_gift_value(for_date = None):
     # today = timeHelper.getNowLong()
-    today = timeHelper.getTimeAheadOfNowHours(PROCESS_PROMO_DETAIL_RECENCY_HOURS,format='%Y-%m-%d %H:%M:%S')
+    today = timeHelper.getTimeAheadOfNowHours(datamining_config.PROMO_ITEM_RECENCY_HOURS,format='%Y-%m-%d %H:%M:%S')
 
     sql1 = 'delete from jd_analytic_promo_gift_valued'
 
@@ -329,7 +366,7 @@ def _extract_reach_deduction_array(content):
 
 
 def process_promo_detail():
-    today = timeHelper.getTimeAheadOfNowHours(PROCESS_PROMO_DETAIL_RECENCY_HOURS,'%Y-%m-%d %H:%M:%S')
+    today = timeHelper.getTimeAheadOfNowHours(datamining_config.PROMO_ITEM_RECENCY_HOURS,'%Y-%m-%d %H:%M:%S')
     # today = timeHelper.getTimeAheadOfNowDays(1)
     sql = '''
         select a.*, b.title, b.price, d.id as category_id, d.name as category_name from
@@ -467,11 +504,62 @@ def process_promo_detail():
     print "code = 15, repeated = %s" %num_15_repeated
     print "rows to insert = %s" %len(vlist)
 
+    sql_cb_deduction = '''
+        CREATE TABLE jd_analytic_promo_deduction_latest (
+          sku_id bigint(20) NOT NULL,
+          add_time datetime NOT NULL,
+          title varchar(255) NOT NULL,
+          price decimal(10,0) NOT NULL,
+          is_repeat tinyint(4) NOT NULL,
+          reach float NOT NULL,
+          deduction float NOT NULL,
+          max_deduction float NOT NULL,
+          dr_ratio float NOT NULL,
+          maxp_ratio float NOT NULL,
+          single_discount_rate float NOT NULL,
+          category_id varchar(255) NOT NULL,
+          category_name varchar(255) DEFAULT NULL,
+          pid varchar(255) NOT NULL,
+          code varchar(255) NOT NULL,
+          name varchar(255) NOT NULL,
+          content varchar(255) NOT NULL,
+          adurl varchar(255) DEFAULT NULL,
+          origin_time datetime NOT NULL,
+          KEY skuid (sku_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+    '''
+
+    sql_cb_discount = '''
+        CREATE TABLE jd_analytic_promo_discount_latest (
+          sku_id bigint(20) NOT NULL,
+          add_time datetime NOT NULL,
+          title varchar(255) DEFAULT NULL,
+          price float DEFAULT NULL,
+          deduct_type smallint(6) DEFAULT NULL,
+          reach_num smallint(6) DEFAULT NULL,
+          discount float DEFAULT NULL,
+          free_num smallint(6) DEFAULT NULL,
+          rf_ratio float DEFAULT NULL,
+          category_id varchar(255) DEFAULT NULL,
+          category_name varchar(255) DEFAULT NULL,
+          pid varchar(255) NOT NULL,
+          code varchar(255) NOT NULL,
+          name varchar(255) NOT NULL,
+          content varchar(255) NOT NULL,
+          adurl varchar(255) DEFAULT NULL,
+          origin_dt datetime DEFAULT NULL,
+          PRIMARY KEY (sku_id,pid),
+          KEY skuid (sku_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+    '''
+
     pret15 = crawler_helper.persist_db_history_and_lastest_empty_first(
         table_name='jd_analytic_promo_deduction',
         num_cols=len(vlist[0]),
         value_list=vlist,
-        is_many=True
+        is_many=True,
+        need_history=False,
+        sql_create_table=sql_cb_deduction,
     )
 
     print "code = 19, cases = %s" %num_19
@@ -481,7 +569,9 @@ def process_promo_detail():
         table_name='jd_analytic_promo_discount',
         num_cols=len(vlist19[0]),
         value_list=vlist19,
-        is_many=True
+        is_many=True,
+        need_history=False,
+        sql_create_table=sql_cb_discount,
     )
 
     return _generate_mixed_ret([pret15, pret19])
