@@ -88,8 +88,8 @@ MAX_DEDUCTION_CONSTANT = 99999999
 #     # print json.dumps(adict)
 #     print "ok"
 
-PROCESS_RAW_PROMO_RECENCY_HOURS = 24
-PROCESS_PROMO_DETAIL_RECENCY_HOURS = 24
+PROCESS_RAW_PROMO_RECENCY_HOURS = 12
+PROCESS_PROMO_DETAIL_RECENCY_HOURS = 12
 
 def processItemPromo():
     vlist = []
@@ -195,7 +195,7 @@ def _generate_mixed_ret(ret_list):
 ## 下面方法必须在当天处理完promo_item的gift数据之后运行
 def process_gift_value(for_date = None):
     # today = timeHelper.getNowLong()
-    today = timeHelper.getTimeAheadOfNowHours(24,format='%Y-%m-%d %H:%M:%S')
+    today = timeHelper.getTimeAheadOfNowHours(PROCESS_PROMO_DETAIL_RECENCY_HOURS,format='%Y-%m-%d %H:%M:%S')
 
     sql1 = 'delete from jd_analytic_promo_gift_valued'
 
@@ -225,6 +225,7 @@ def process_gift_value(for_date = None):
     a.update_date >= '%s'
     and b.price is not NULL
     and c.price is not NULL
+    and b.price>0
 
     order by gift_value DESC
 
@@ -590,7 +591,7 @@ def process_promo_detail():
 if __name__ == "__main__":
     # print processItemPromo()
     print process_gift_value()
-    print process_promo_detail()
+    # print process_promo_detail()
     # update_promo_results()
 
     pass

@@ -41,10 +41,10 @@ class WorthyProcessBase:
             try:
 
                 ret = func()
-                print "\t>>>>>>>>>>>>>>>>>>>>> func %s returning value: %s >>>>>>>>>>>>>>>" %(func, ret)
+                print "\t##### func %s returning value: %s ######" %(func, ret)
 
             except Exception as e:
-                print "ERROR GREP LINE"
+                print "ERROR GREP LINE >>>>>>>>" * 5
                 print e
                 has_error = True
                 has_error_anywhere = True
@@ -63,7 +63,7 @@ class WorthyProcessBase:
             try:
                 has_error  = self.run_tasks_once()
             except Exception as e:
-                print "ERROR GREP LINE"
+                print "ERROR GREP LINE >>>>>>" * 5
                 print e
                 has_error = True
 

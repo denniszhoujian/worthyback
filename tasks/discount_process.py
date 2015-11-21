@@ -1,14 +1,14 @@
 # encoding: utf-8
 
 from process_class import WorthyProcessBase
-from worthy_analytics import promo_item_trans, final_discount, base_price
+from worthy_analytics import promo_item_trans, worthy_mix, base_price
 
 func_list = [
     base_price.calculate_price_table,
     promo_item_trans.processItemPromo,      # 90 secs
     promo_item_trans.process_promo_detail,  # 10 secs
     promo_item_trans.process_gift_value,    # 2 secs
-    final_discount.match_discounts,         # 300 secs
+    worthy_mix.generate_worthy_mix_main,         # 300 secs
 ]
 
 if __name__ == '__main__':

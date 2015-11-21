@@ -6,3 +6,13 @@ def transform_retrows_to_dict(retrows, key_col_name):
         id = "%s" %row[key_col_name]
         ret[id] = row
     return ret
+
+def generate_list_for_db_write(retrows, col_names):
+    tlist = []
+    for row in retrows:
+        tp = []
+        for col in col_names:
+            val = row[col] if col in row else None
+            tp.append(val)
+        tlist.append(tp)
+    return tlist

@@ -30,10 +30,10 @@ def getSkuInfoForList(sku_list):
 def getDiscountItemsAll(category_id = "_EXPENSIVE_", startpos = 0, min_allowed_price=DEFAULT_MIN_ALLOWED_PRICE, min_allowed_discount_rate=DEFAULT_MIN_ALLOWED_WORTHY_VALUE):
 
     kstr = memcachedStatic.getKey(category_id)
-    mckey = "getDiscountItemsAll8_%s_%s_%s_%s" %(kstr, startpos, min_allowed_price,min_allowed_discount_rate)
+    mckey = "getDiscountItemsAll9_%s_%s_%s_%s" %(kstr, startpos, min_allowed_price,min_allowed_discount_rate)
     print "memcache key = %s" %mckey
     mcv = None
-    mcv = mc.get(mckey)
+    #mcv = mc.get(mckey)
     retrows = None
     t1 = time.time()
     if mcv is not None:
@@ -76,8 +76,8 @@ def getDiscountItemsAll(category_id = "_EXPENSIVE_", startpos = 0, min_allowed_p
 
     # calculate final_price, final_discount
     for row in retrows:
-        price = float(row['price'])
-        row['price'] = price
+        # price = float(row['price'])
+        # row['price'] = price
         # final_price = price
         # if row['reach'] is not None:
         #     final_price *= (1.0 - float(row['max_deduction_ratio']))

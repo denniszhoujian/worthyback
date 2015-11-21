@@ -4,6 +4,8 @@ import rows_helper
 import math
 
 FINAL_DISCOUNT_RECENCY_HOURS = 36
+IF_DEBUG_SKU = True
+DEBUG_SKU_ID = 264212
 
 col_worthyvalue_weight_dict_1 = {
             'discount_rate': 1,
@@ -110,6 +112,7 @@ cols_deduction = [
 
 def _get_deduction_dict():
     hours_ahead = timeHelper.getTimeAheadOfNowHours(FINAL_DISCOUNT_RECENCY_HOURS,format='%Y-%m-%d %H:%M:%S')
+    debug_sku_str = "" if not IF_DEBUG_SKU else " and a.sku_id=%s" %DEBUG_SKU_ID
 
     sql_deduction = '''
         select * from
@@ -131,8 +134,8 @@ def _get_deduction_dict():
         a.sku_id = b.sku_id
         and ABS(a.max_deduction_ratio-b.single_discount_rate)<0.001
 
-        where origin_time>'%s'
-    ''' %hours_ahead
+        where origin_time>'%s' %s
+    ''' %(hours_ahead, debug_sku_str)
 
     retrows_deduction = dbhelper.executeSqlRead(sql_deduction, is_dirty=True, isolation_type='read-committed')
     for row in retrows_deduction:
@@ -143,27 +146,30 @@ def _get_deduction_dict():
 
 def _get_discount_dict():
     hours_ahead = timeHelper.getTimeAheadOfNowHours(FINAL_DISCOUNT_RECENCY_HOURS,format='%Y-%m-%d %H:%M:%S')
+    debug_sku_str = "" if not IF_DEBUG_SKU else " and sku_id=%s" %DEBUG_SKU_ID
 
     sql_deduction = '''
         select * from
         jd_analytic_promo_discount_latest
-        where origin_dt>'%s'
-    ''' %hours_ahead
+        where origin_dt>'%s' %s
+    ''' %(hours_ahead, debug_sku_str)
     retrows_deduction = dbhelper.executeSqlRead(sql_deduction, is_dirty=True, isolation_type='read-committed')
     for row in retrows_deduction:
         row['content_discount'] = row['content']
     dict_deduction = rows_helper.transform_retrows_to_dict(retrows_deduction, 'sku_id')
+    #print dict_deduction['264212']
     return dict_deduction
 
 
 def _get_gift_dict():
     hours_ahead = timeHelper.getTimeAheadOfNowHours(FINAL_DISCOUNT_RECENCY_HOURS,format='%Y-%m-%d %H:%M:%S')
+    debug_sku_str = "" if not IF_DEBUG_SKU else " and sku_id=%s" %DEBUG_SKU_ID
     # gift_valued表中, dt是原始爬取时间(其他表是origin_time)
     sql_deduction = '''
         select * from
         jd_analytic_promo_gift_valued
-        where dt>'%s'
-    ''' %hours_ahead
+        where dt>'%s' %s
+    ''' %(hours_ahead, debug_sku_str)
     # print sql_deduction
 
     retrows_deduction = dbhelper.executeSqlRead(sql_deduction, is_dirty=True, isolation_type='read-committed')
@@ -171,17 +177,19 @@ def _get_gift_dict():
     return dict_deduction
 
 def _get_item_firstseen_dict():
+    debug_sku_str = "" if not IF_DEBUG_SKU else " where sku_id=%s" %DEBUG_SKU_ID
     sql_deduction = '''
-        select sku_id,first_seen_date from jd_item_firstseen
-    '''
+        select sku_id,first_seen_date from jd_item_firstseen %s
+    ''' %(debug_sku_str)
     retrows_deduction = dbhelper.executeSqlRead(sql_deduction, is_dirty=True)
     dict_deduction = rows_helper.transform_retrows_to_dict(retrows_deduction, 'sku_id')
     return dict_deduction
 
 def _get_rating_dict():
+    debug_sku_str = "" if not IF_DEBUG_SKU else " where sku_id=%s" %DEBUG_SKU_ID
     sql_deduction = '''
-        select * from jd_analytic_item_rating_diff
-    '''
+        select * from jd_analytic_item_rating_diff %s
+    ''' %(debug_sku_str)
     retrows_deduction = dbhelper.executeSqlRead(sql_deduction, is_dirty=True)
     dict_deduction = rows_helper.transform_retrows_to_dict(retrows_deduction, 'sku_id')
     return dict_deduction
@@ -325,8 +333,9 @@ def _calculate_worthy_values(sku_info_list):
 
 def match_discounts():
 
+    debug_sku_str = "" if not IF_DEBUG_SKU else " where sku_id=%s" %DEBUG_SKU_ID
     print('>>> 1/8 >>> Reading jd_price_temp_latest...')
-    sql_price = 'select * from jd_price_temp_latest'
+    sql_price = 'select * from jd_price_temp_latest %s' %debug_sku_str
     retrows_price = dbhelper.executeSqlRead(sql_price, is_dirty=True)
     print('rows read: %s' %len(retrows_price))
 
