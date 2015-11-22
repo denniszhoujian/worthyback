@@ -6,6 +6,8 @@ import rows_helper
 import time
 from worthy_analytics import datamining_config
 
+IS_SKU_LEVEL_DEBUGGING = False
+DEBUG_SKU_ID = 1273979
 
 col_worthyvalue_weight_dict_deduct_even = {
     'discount_rate': 1,
@@ -73,12 +75,12 @@ worthy_columns = [
     'category_rating_score',
     'rating_score_diff',
     'first_seen_date',
-    'sample_count',
     'final_price',
     'final_discount', # added 1121
     'total_discount_rate',
     'activity_discount_rate',
     'worthy_value1',
+    'sample_count',
 ]
 
 def _get_merged_tables():
@@ -164,6 +166,9 @@ def _get_merged_tables():
 
     where b.price > 0
     '''
+
+    if IS_SKU_LEVEL_DEBUGGING:
+        sql += '\n and a.sku_id = %s' %DEBUG_SKU_ID
 
     retrows = dbhelper.executeSqlRead(sql, is_dirty=True)
     return retrows

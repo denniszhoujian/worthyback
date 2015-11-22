@@ -2,7 +2,7 @@
 
 import dbhelper_read
 from datasys.memcachedHelper import memcachedStatic
-from datasys import jd_API
+from datasys import jd_API,timeHelper
 import time
 
 mc = memcachedStatic.getMemCache()
@@ -10,10 +10,13 @@ mc = memcachedStatic.getMemCache()
 FRAME_SIZE = 30
 CACHE_TIME_OUT = 3600
 MIN_PRICE_FOR_EXPENSIVE = 800
+MAX_ALLOWED_PRICE = 30000
 IF_USE_REAL_TIME_PRICE = False
 
 DEFAULT_MIN_ALLOWED_PRICE = 20
 DEFAULT_MIN_ALLOWED_WORTHY_VALUE = 0.85
+
+APP_WORTHY_RECENCY_HOURS = 12
 
 def getSkuInfoForList(sku_list):
 
@@ -30,10 +33,10 @@ def getSkuInfoForList(sku_list):
 def getDiscountItemsAll(category_id = "_EXPENSIVE_", startpos = 0, min_allowed_price=DEFAULT_MIN_ALLOWED_PRICE, min_allowed_discount_rate=DEFAULT_MIN_ALLOWED_WORTHY_VALUE):
 
     kstr = memcachedStatic.getKey(category_id)
-    mckey = "getDiscountItemsAll9_%s_%s_%s_%s" %(kstr, startpos, min_allowed_price,min_allowed_discount_rate)
+    mckey = "getDiscountItemsAll10_%s_%s_%s_%s" %(kstr, startpos, min_allowed_price,min_allowed_discount_rate)
     print "memcache key = %s" %mckey
     mcv = None
-    #mcv = mc.get(mckey)
+    mcv = mc.get(mckey)
     retrows = None
     t1 = time.time()
     if mcv is not None:
@@ -46,16 +49,18 @@ def getDiscountItemsAll(category_id = "_EXPENSIVE_", startpos = 0, min_allowed_p
             category_id = ""
             min_allowed_price = MIN_PRICE_FOR_EXPENSIVE
 
-
+        dt = timeHelper.getTimeAheadOfNowHours(APP_WORTHY_RECENCY_HOURS, timeHelper.FORMAT_LONG)
         sql = '''
             select * from jd_worthy_latest
             where
             category_id like '%s%%'
             and worthy_value1 < %s
-            and current_price > %s
+            and current_price >= %s
+            and current_price < %s
+            and this_update_time > '%s'
             order by worthy_value1 ASC
             limit %s, %s
-        ''' %(category_id, min_allowed_discount_rate, min_allowed_price, startpos+1, FRAME_SIZE)
+        ''' %(category_id, min_allowed_discount_rate, min_allowed_price, MAX_ALLOWED_PRICE, dt, startpos, FRAME_SIZE)
         print sql
         retrows = dbhelper_read.executeSqlRead(sql,is_dirty=True)
 
