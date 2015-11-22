@@ -73,10 +73,9 @@ worthy_columns = [
     'category_rating_score',
     'rating_score_diff',
     'first_seen_date',
-
+    'sample_count',
     'final_price',
     'final_discount', # added 1121
-
     'total_discount_rate',
     'activity_discount_rate',
     'worthy_value1',
@@ -100,21 +99,18 @@ def _get_merged_tables():
     k.c,
     k.j,
     k.l,
-
     b.title,
     b.thumbnail_url,
     b.icon_url,
-
     c.content as content_deduction,
     c.adurl as adurl_deduction,
     c.is_repeat,
     c.reach,
     c.deduction,
-    c.max_deduction_ratio,
+    c.max_deduction,
     c.dr_ratio,
     c.maxp_ratio,
-    c.max_deduction,
-
+    c.max_deduction_ratio,
     d.content as content_discount,
     d.adurl as adurl_discount,
     d.deduct_type,
@@ -122,7 +118,6 @@ def _get_merged_tables():
     d.discount,
     d.free_num,
     d.rf_ratio,
-
     e.gift_name,
     e.gift_num,
     e.gift_image,
@@ -130,14 +125,12 @@ def _get_merged_tables():
     e.gift_price,
     e.gift_value,
     e.gift_ratio,
-
     f.comment_count,
     f.rating_score,
     f.category_rating_score,
     f.rating_score_diff,
-
-    g.first_seen_date
-
+    g.first_seen_date,
+    a.sample_count
 
     from
 
