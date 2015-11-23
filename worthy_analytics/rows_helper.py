@@ -4,6 +4,8 @@ def transform_retrows_to_dict(retrows, key_col_name):
     ret = {}
     for row in retrows:
         id = "%s" %row[key_col_name]
+        if id in ret:
+            print 'id already in dict: id = %s' %id
         ret[id] = row
     return ret
 

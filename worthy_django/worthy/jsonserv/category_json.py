@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.core.serializers.json import DjangoJSONEncoder
 import json
 import jsonHelper
-from worthy_service import category_service
+from worthy_service import category_service,catalog_service
 
 ####################################################################################################
 ###################    HTTP RESPONSE HERE      #####################################################
@@ -20,6 +20,7 @@ def getCategoryListAll(request):
         print("request param: level: incorrect")
         pass
 
-    ret = category_service.getServiceCategoryListAll(level)
+    # ret = category_service.getServiceCategoryListAll(level)
+    ret = catalog_service.getCatalogs()
     resp = jsonHelper.getJSONPStr(request,ret)
     return HttpResponse(resp, content_type="application/json")

@@ -39,6 +39,8 @@ def _get_sub_categories_all(category_id):
     retrows = dbhelper_read.executeSqlRead(sql)
     return retrows
 
+
+# USED to use this func to serve. Using others at 11/23/2015
 def getServiceCategoryListAll(level = 1):
     mckey = 'category_service.py::getServiceCategoryListAll_%s' %level
     #mv  = mc.get(mckey)
@@ -70,22 +72,6 @@ def getServiceCategoryListAll(level = 1):
 
     #mc.set(mckey,retlist,SERVICE_CATEGORY_CACHE_TIMEOUT)
     return retlist
-
-# def getServiceCategoryListAll(level = 0):
-#     mckey = 'category_service.py::getServiceCategoryListAll'
-#     #mv  = mc.get(mckey)
-#     mv = None
-#     if mv is not None:
-#         return mv
-#
-#     sql = 'select * from jd_category_white_list where is_service=1'
-#     retrows = dbhelper_read.executeSqlRead(sql)
-#     for row in retrows:
-#         sub_rows = _get_sub_categories_all(row['category_id'])
-#         row['sub_categories'] = sub_rows
-#     #mc.set(mckey,retrows,SERVICE_CATEGORY_CACHE_TIMEOUT)
-#     return retrows
-
 
 if __name__ == '__main__':
     ret = getServiceCategoryListAll(1)

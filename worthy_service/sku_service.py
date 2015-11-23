@@ -33,7 +33,7 @@ def getSkuInfoForList(sku_list):
 def getDiscountItemsAll(category_id = "_EXPENSIVE_", startpos = 0, min_allowed_price=DEFAULT_MIN_ALLOWED_PRICE, min_allowed_discount_rate=DEFAULT_MIN_ALLOWED_WORTHY_VALUE):
 
     kstr = memcachedStatic.getKey(category_id)
-    mckey = "getDiscountItemsAll10_%s_%s_%s_%s" %(kstr, startpos, min_allowed_price,min_allowed_discount_rate)
+    mckey = "getDiscountItemsAll15_%s_%s_%s_%s" %(kstr, startpos, min_allowed_price,min_allowed_discount_rate)
     print "memcache key = %s" %mckey
     mcv = None
     mcv = mc.get(mckey)
@@ -43,25 +43,28 @@ def getDiscountItemsAll(category_id = "_EXPENSIVE_", startpos = 0, min_allowed_p
         print "ok cached"
         retrows = mcv
     else:
+        catalog_sql_part = " catalog_id is not null and "
         if category_id == "_ALL_":
-            category_id = ""
+            pass
         elif category_id == "_EXPENSIVE_":
-            category_id = ""
             min_allowed_price = MIN_PRICE_FOR_EXPENSIVE
+        else:
+            catalog_sql_part = 'catalog_id = %s and ' %category_id
 
         dt = timeHelper.getTimeAheadOfNowHours(APP_WORTHY_RECENCY_HOURS, timeHelper.FORMAT_LONG)
         sql = '''
-            select * from jd_worthy_latest
+            select *, if(a=34,0,1) as stock_bit from
+            jd_worthy_latest
             where
-            category_id like '%s%%'
-            and worthy_value1 < %s
+            %s
+            worthy_value1 < %s
             and current_price >= %s
             and current_price < %s
             and this_update_time > '%s'
             -- and a <> 34 -- 有货,无货标志34
-            order by worthy_value1 ASC
+            order by stock_bit DESC, worthy_value1 ASC
             limit %s, %s
-        ''' %(category_id, min_allowed_discount_rate, min_allowed_price, MAX_ALLOWED_PRICE, dt, startpos, FRAME_SIZE)
+        ''' %(catalog_sql_part, min_allowed_discount_rate, min_allowed_price, MAX_ALLOWED_PRICE, dt, startpos, FRAME_SIZE)
         print sql
         retrows = dbhelper_read.executeSqlRead(sql,is_dirty=True)
 
