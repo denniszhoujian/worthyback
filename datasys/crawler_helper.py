@@ -23,7 +23,7 @@ def persist_db_history_and_latest(table_name, num_cols, value_list, is_many=True
         t2 = time.time()
         tcur = t2
         logging.debug('persist_db_history_and_latest, history using time: %s' %(t2-t1))
-    if need_detail:
+    if need_flow:
         sql = 'replace into %s values(%s)' %(table_name+'_detail',values_str)
         affected_rows3 = dbhelper.executeSqlWriteMany(sql,value_list,is_dirty=True)
         t21 = time.time()
