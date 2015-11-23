@@ -106,7 +106,8 @@ def crawl_category(category_id):
         num_cols=len(product_list[0]),
         value_list=product_list,
         is_many=True,
-        need_history=True
+        need_history=True,
+        need_flow=True,
     )
 
     logging.debug('Saved to DB -- category_id = %s -- sku_count=%s' %(category_id,total_goods_num))

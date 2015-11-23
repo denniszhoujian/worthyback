@@ -509,7 +509,7 @@ def process_promo_detail():
           sku_id bigint(20) NOT NULL,
           add_time datetime NOT NULL,
           title varchar(255) NOT NULL,
-          price decimal(10,0) NOT NULL,
+          price float NOT NULL,
           is_repeat tinyint(4) NOT NULL,
           reach float NOT NULL,
           deduction float NOT NULL,

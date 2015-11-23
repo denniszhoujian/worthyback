@@ -6,33 +6,41 @@ import time
 import logging
 
 
-def persist_db_history_and_latest(table_name, num_cols, value_list, is_many=True, need_history=False):
+def persist_db_history_and_latest(table_name, num_cols, value_list, is_many=True, need_history=False, need_flow=False):
     tbl_latest = '%s_latest' %table_name
     ps_list = []
     for i in xrange(num_cols):
         ps_list.append('%s')
     values_str = ','.join(ps_list)
 
-
     t1 = time.time()
+    tcur = t1
     affected_rows = 99999
-    if need_history:
+    affected_rows3 = 99999
+    if need_flow:
         sql = 'replace into %s values(%s)' %(table_name,values_str)
         affected_rows = dbhelper.executeSqlWriteMany(sql,value_list,is_dirty=True)
         t2 = time.time()
+        tcur = t2
         logging.debug('persist_db_history_and_latest, history using time: %s' %(t2-t1))
-    t22 = time.time()
+    if need_detail:
+        sql = 'replace into %s values(%s)' %(table_name+'_detail',values_str)
+        affected_rows3 = dbhelper.executeSqlWriteMany(sql,value_list,is_dirty=True)
+        t21 = time.time()
+        logging.debug('persist_db_history_and_latest, flow using time: %s' %(t21-tcur))
+        tcur = t21
     sql2 = 'replace into %s values(%s)' %(tbl_latest,values_str)
     affected_rows2 = dbhelper.executeSqlWriteMany(sql2,value_list,is_dirty=True)
     t3 = time.time()
-    logging.debug('persist_db_history_and_latest, latest using time: %s' %(t3-t22))
+    logging.debug('persist_db_history_and_latest, latest using time: %s' %(t3-tcur))
     status = -1
-    if affected_rows>0 and affected_rows2>0:
+    if affected_rows>0 and affected_rows2>0 and affected_rows3>0:
         status = 0
     ret = {
         'status':status,
-        'affected_rows':affected_rows,
-        'affected_rows2':affected_rows2
+        'affected_rows_latest': affected_rows2,
+        'affected_rows_history': affected_rows,
+        'affected_rows_flow': affected_rows3,
     }
     return ret
 

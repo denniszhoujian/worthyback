@@ -7,7 +7,7 @@ import time
 from worthy_analytics import datamining_config
 
 IS_SKU_LEVEL_DEBUGGING = False
-DEBUG_SKU_ID = 1273979
+DEBUG_SKU_ID = 675156
 
 col_worthyvalue_weight_dict_deduct_even = {
     'discount_rate': 1,
@@ -55,6 +55,9 @@ worthy_columns = [
     'dr_ratio',
     'maxp_ratio',
     'max_deduction_ratio',
+    'reach_2',
+    'deduction_2',
+    'max_dr_ratio',
     'deduction_score', # added 1121
     'content_discount',
     'adurl_discount',
@@ -113,6 +116,10 @@ def _get_merged_tables():
     c.dr_ratio,
     c.maxp_ratio,
     c.max_deduction_ratio,
+    c.reach_2,
+    c.deduction_2,
+    c.max_dr_ratio,
+    c.discount_score_2 as deduction_score,
     d.content as content_discount,
     d.adurl as adurl_discount,
     d.deduct_type,
@@ -233,17 +240,18 @@ def _calculate_worthy_values(worthy_rows):
     for sku in worthy_rows:
         sku['final_price'] = caculate_final_price(sku,price=None)
         sku['final_discount'] = float(sku['final_price'])/float(sku['current_price'])
-        if sku['is_repeat'] is not None:
-            ds = float(sku['max_deduction_ratio'])
-            if math.fabs(ds-0.000)<0.0001:
-                ds1 = float(sku['maxp_ratio'])
-                ds2 = float(sku['dr_ratio'])
-                ds = ds1 * ds2
-            sku['deduction_score'] = 1.000 - ds
+        # if sku['is_repeat'] is not None:
+        #     ds = float(sku['max_deduction_ratio'])
+        #     if math.fabs(ds-0.000)<0.0001:
+        #         ds1 = float(sku['maxp_ratio'])
+        #         ds2 = float(sku['max_dr_ratio'])
+        #         ds = ds1 * ds2
+        #     sku['deduction_score'] = 1.000 - ds
 
         col_name_list = [
             'discount_rate',
             'max_deduction_ratio',
+            'deduction_score',
             'discount',
             'rf_ratio',
             'gift_ratio',
@@ -256,9 +264,17 @@ def _calculate_worthy_values(worthy_rows):
                 val  = float(sku[item])
                 if val > 0.0:
                     param_dict[item] = val
+                    if item in ['deduction_score']:
+                        param_dict[item] = 1.0 - val
                     # max_deduction should be 1 - X
+                    # also, max_deduction and deduction_score has overlap, need only one of them...
                     if item in ['max_deduction_ratio']:
                         param_dict[item] = 1.0 - val
+                        if abs(float(sku['deduction_score']) - val) < 0.001:
+                            param_dict['deduction_score'] = 1.0
+                    # discount should be divided by 10
+                    if item in ['discount']:
+                        param_dict[item] = val / 10.0
                     # there are cases where gift price is None, in db it's -1.
                     # generally these are not valuable, so make it 1.0 here.
                     if item in ['gift_ratio']:
@@ -266,6 +282,12 @@ def _calculate_worthy_values(worthy_rows):
                         if val2 < 0.2:
                             val2 = 0.2
                         param_dict[item] = val2
+                    # For reach-free, the larger the value of reach_num, the less valuable the deal is.
+                    # so make the score less when reach_num goes higher.
+                    if item in ['rf_ratio']:
+                        reach_num = float(sku['reach_num'])
+                        score = float(param_dict[item])
+                        param_dict[item] = 1 - (1.0-score)/math.pow((reach_num-1.0),datamining_config.DISCOUNT_REACH_NUM_POWER_BASE)
 
 
         # The most easy algorithm to calculate final worthy score

@@ -58,6 +58,7 @@ def getDiscountItemsAll(category_id = "_EXPENSIVE_", startpos = 0, min_allowed_p
             and current_price >= %s
             and current_price < %s
             and this_update_time > '%s'
+            -- and a <> 34 -- 有货,无货标志34
             order by worthy_value1 ASC
             limit %s, %s
         ''' %(category_id, min_allowed_discount_rate, min_allowed_price, MAX_ALLOWED_PRICE, dt, startpos, FRAME_SIZE)
