@@ -262,10 +262,11 @@ def _calculate_worthy_values(worthy_rows):
         d1 = sku['max_deduction_ratio']
         d2 = sku['deduction_score']
         if d1 is None:
-            deduction_score = 1.0 - d2
-        elif d2 is None:
-            deduction_score = 1.0 - d1
-        elif float(d1) > float(d2):
+            d1 = 0
+        if d2 is None:
+            d2 = 0
+
+        if float(d1) >= float(d2):
             deduction_score = 1.0 - d1
         else:
             deduction_score = 1.0 - (float(d1)+float(d2))/2.0
