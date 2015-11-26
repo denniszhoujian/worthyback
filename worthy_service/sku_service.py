@@ -4,10 +4,11 @@ import dbhelper_read
 from datasys.memcachedHelper import memcachedStatic
 from datasys import jd_API,timeHelper
 import time
+import rating_service
 
 mc = memcachedStatic.getMemCache()
 
-FRAME_SIZE = 30
+FRAME_SIZE = 3
 CACHE_TIME_OUT = 3600
 MIN_PRICE_FOR_EXPENSIVE = 800
 MAX_ALLOWED_PRICE = 30000
@@ -33,10 +34,10 @@ def getSkuInfoForList(sku_list):
 def getDiscountItemsAll(category_id = "_EXPENSIVE_", startpos = 0, min_allowed_price=DEFAULT_MIN_ALLOWED_PRICE, min_allowed_discount_rate=DEFAULT_MIN_ALLOWED_WORTHY_VALUE):
 
     kstr = memcachedStatic.getKey(category_id)
-    mckey = "getDiscountItemsAll15_%s_%s_%s_%s" %(kstr, startpos, min_allowed_price,min_allowed_discount_rate)
+    mckey = "getDiscountItemsAll_17_%s_%s_%s_%s" %(kstr, startpos, min_allowed_price,min_allowed_discount_rate)
     print "memcache key = %s" %mckey
     mcv = None
-    mcv = mc.get(mckey)
+    # mcv = mc.get(mckey)
     retrows = None
     t1 = time.time()
     if mcv is not None:
@@ -83,29 +84,20 @@ def getDiscountItemsAll(category_id = "_EXPENSIVE_", startpos = 0, min_allowed_p
             print "ERROR in real-time-price retreaval in jd_API"
             print e
 
-    # calculate final_price, final_discount
     for row in retrows:
-        # price = float(row['price'])
-        # row['price'] = price
-        # final_price = price
-        # if row['reach'] is not None:
-        #     final_price *= (1.0 - float(row['max_deduction_ratio']))
-        # row['final_price'] = final_price
-
-        diff_stars = None
-        if row['rating_score_diff'] is not None:
-            #print "okokshit: %s" %row['rating_score_diff']
-            rating_score_diff = float() + 10.0
-            diff_stars = 0
-            if rating_score_diff > 10:
-                rating_score_diff = 10.0
-            if rating_score_diff < 0:
-                rating_score_diff = 0.0
-            diff_stars = rating_score_diff/2
-        row['diff_stars'] = diff_stars
+        # diff_stars = 3
+        # if row['rating_score_diff'] is not None:
+        #     diff_stars = rating_service.getRatingDiffScore(row['rating_score_diff'])
+        # row['diff_stars'] = diff_stars
         if row['max_deduction'] is not None:
             if float(row['max_deduction']) > 90000000:
                 row['max_deduction'] = -1.0
+        if row['reach_2'] is not None:
+            if row['reach'] is not None:
+                if abs(float(row['reach_2'])-float(row['reach'])) < 0.001:
+                    print('<0.001')
+                    row['reach_2'] = None
+                    row['deduction_2'] = None
 
 
     mc.set(mckey, retrows, CACHE_TIME_OUT)

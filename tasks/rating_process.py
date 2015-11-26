@@ -3,12 +3,15 @@
 from datasys import timeHelper
 import time
 import worthy_analytics.rating_diff, worthy_analytics.base_price, worthy_analytics.base_rating, worthy_analytics.promo_item_trans
+from worthy_analytics import rating_percentile
 from process_class import WorthyProcessBase
 
 
 func_list = [
-    worthy_analytics.base_rating.calculate_base_rating_for_categories,
-    worthy_analytics.rating_diff.calculate_rating_diff,
+    # worthy_analytics.base_rating.calculate_base_rating_for_categories,
+    # worthy_analytics.rating_diff.calculate_rating_diff,
+    rating_percentile.calculateSkuRatingScores,
+    rating_percentile.calculatePercentile,
 ]
 
 if __name__ == "__main__":

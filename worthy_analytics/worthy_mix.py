@@ -17,6 +17,7 @@ col_worthyvalue_weight_dict_deduct_even = {
     'discount': 1,
     'rf_ratio': 1,
     'gift_ratio': 1,
+    'rating_score_diff': 0.0,
 }
 
 col_worthyvalue_weight_dict_acitivity = {
@@ -27,6 +28,7 @@ col_worthyvalue_weight_dict_acitivity = {
     'discount': 0.75,
     'rf_ratio': 0.6,
     'gift_ratio': 0.3,
+    'rating_score_diff': 0.0
 }
 
 worthy_columns = [
@@ -140,8 +142,8 @@ def _get_merged_tables():
     e.gift_ratio,
     f.comment_count,
     f.rating_score,
-    f.category_rating_score,
-    f.rating_score_diff,
+    f.rating_sample_num as category_rating_score,
+    f.percentile_rating_score as rating_score_diff,
     g.first_seen_date,
     a.sample_count
 
@@ -160,7 +162,8 @@ def _get_merged_tables():
     left join jd_analytic_promo_gift_valued e
     on a.sku_id = e.sku_id
 
-    left join jd_analytic_item_rating_diff f
+--     left join jd_analytic_item_rating_diff f
+    left join jd_analytic_rating_percentile_latest f
     on a.sku_id = f.sku_id
 
     left join jd_item_firstseen g
@@ -256,6 +259,7 @@ def _calculate_worthy_values(worthy_rows):
             'discount',
             'rf_ratio',
             'gift_ratio',
+            'rating_score_diff',
         ]
 
         deduction_score = 1.0
