@@ -285,14 +285,6 @@ def _calculate_worthy_values(worthy_rows):
                 val  = float(sku[item])
                 if val > 0.0:
                     param_dict[item] = val
-                    # if item in ['deduction_score']:
-                    #     param_dict[item] = 1.0 - val
-                    # # max_deduction should be 1 - X
-                    # also, max_deduction and deduction_score has overlap, need only one of them...
-                    # if item in ['max_deduction_ratio']:
-                    #     param_dict[item] = 1.0 - val
-                        # if abs(float(sku['deduction_score']) - val) < 0.001:
-                        #     param_dict['deduction_score'] = 1.0
                     # discount should be divided by 10
                     if item in ['discount']:
                         param_dict[item] = val / 10.0
@@ -309,8 +301,9 @@ def _calculate_worthy_values(worthy_rows):
                         reach_num = float(sku['reach_num'])
                         score = float(param_dict[item])
                         param_dict[item] = 1 - (1.0-score)/math.pow((reach_num-1.0),datamining_config.DISCOUNT_REACH_NUM_POWER_BASE)
-
-
+                    if item in ['rating_score_diff']:
+                        val2 = 1.0 - val
+                        param_dict[item] = val2
 
 
         # The most easy algorithm to calculate final worthy score
