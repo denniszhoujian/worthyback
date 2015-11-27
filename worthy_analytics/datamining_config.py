@@ -26,5 +26,5 @@ col_worthyvalue_weight_dict_1 = {
             'discount': 0.75,
             'rf_ratio': 0.6,
             'gift_ratio': 0.3,
-            'rating_score_diff': 0.2,
+            'rating_score_diff': 0.0,  # temp no weight
         }
