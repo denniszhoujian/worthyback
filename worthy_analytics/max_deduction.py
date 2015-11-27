@@ -1,6 +1,7 @@
 # encoding: utf-8
 
 from datasys import dbhelper
+import logging
 
 def calculate_max_deduction():
 

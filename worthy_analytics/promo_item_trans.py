@@ -7,6 +7,7 @@ from datasys import jd_API
 import MySQLdb
 import re
 import datamining_config
+import logging
 
 MAX_DEDUCTION_CONSTANT = 99999999
 
