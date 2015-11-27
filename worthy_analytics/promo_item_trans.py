@@ -10,94 +10,13 @@ import datamining_config
 
 MAX_DEDUCTION_CONSTANT = 99999999
 
-# def read_Promo_Items_Quan() :
-#
-#     sql = '''
-#         select * from jd_promo_item_latest where quan_json is not NULL
-#     '''
-#     retrows = dbhelper.executeSqlRead(sql)
-#
-#     adict = {}
-#
-#     for row in retrows:
-#         obj = json.loads(row['quan_json'])
-#         url = "http://item.jd.com/%s.html" %row['sku_id']
-#         # print "%s\t\t%s" %(obj['title'],url)
-#         # print ("\n")
-#         adict[obj['title']] = url
-#     pass
-#
-#     for item in adict:
-#         print item
-#         print adict[item]
-#
-# def read_Promo_Items_Ads():
-#     sql = '''
-#     select sku_id, ads_json from jd_promo_item_latest limit 1000
-#     '''
-#     retrows = dbhelper.executeSqlRead(sql)
-#     for row in retrows:
-#         js = row['ads_json']
-#         obj = json.loads(js)
-#         for item in obj:
-#             if len(item['ad'])>0:
-#                 print item['ad']
-#                 print row['sku_id']
-#
-#
-# def read_Promo_Items_Promo() :
-#
-#     sql = '''
-#         select sku_id, promo_json from jd_promo_item_latest
-#         where promo_json is not NULL
-#     '''
-#     retrows = dbhelper.executeSqlRead(sql)
-#
-#     adict = {}
-#     for row in retrows:
-#         json_str = row['promo_json'].strip()
-#         if json_str not in adict:
-#             adict[json_str] = []
-#         vlist = adict[json_str]
-#         vlist.append(row['sku_id'])
-#
-#     for key in adict:
-#         obj = json.loads(key)
-#         pots = obj['pickOneTag']
-#         for pot in pots:
-#             if pot['code'] == '19':
-#                 name = pot['name']
-#                 content = pot['content']
-#                 adurl = pot['adurl']
-#                 print "name"
-#                 print name
-#                 print content
-#                 print adurl
-#
-#         ending = obj['ending']
-#         tags = obj['tags']
-#         skus = adict[key]
-#
-#         print "ending = %s" %ending
-#         print "tags"
-#         for tag in tags:
-#             for k in tag:
-#                 print "%s :: %s" %(k,tag[k])
-#         print skus
-#         print '-'*60
-#
-#     # print json.dumps(adict)
-#     print "ok"
-
-# PROCESS_RAW_PROMO_RECENCY_HOURS = 12
-# PROCESS_PROMO_DETAIL_RECENCY_HOURS = 12
 
 def processItemPromo():
     vlist = []
     glist = []
     update_date = timeHelper.getNowLong()
     recent = timeHelper.getTimeAheadOfNowHours(datamining_config.PROMO_ITEM_RECENCY_HOURS,timeHelper.FORMAT_LONG)
-    print 'Reading jd_promo_item_latest...'
+    logging.debug('Reading jd_promo_item_latest...' )
     sql = '''
         select sku_id, dt, promo_json from jd_promo_item_latest
         where promo_json is not NULL and LENGTH(promo_json)>100
@@ -107,8 +26,8 @@ def processItemPromo():
     # total_rows = len(retrows)
     num_error = 0
     num17 = 0
-    print 'completed!'
-    print "Total rows with promo_json: %s" %len(retrows)
+    logging.debug('completed!')
+    logging.debug("Total rows with promo_json: %s" %len(retrows))
     for row in retrows:
         sku_id = row['sku_id']
         dt = row['dt']
@@ -117,8 +36,6 @@ def processItemPromo():
             obj = json.loads(row['promo_json'])
         except:
             num_error += 1
-            # print 'ERROR: json.loads()'
-            # print row['promo_json']
             continue
         rtags = obj['pickOneTag']
         for tag in rtags:
@@ -156,11 +73,10 @@ def processItemPromo():
                 tp = [sku_id, dt, pid, code, name, content, adurl, update_date]
                 vlist.append(tp)
 
-    # print num of errors
-    print "num of errors: %s (like json.loads error)" %num_error
-    print 'num17: %s' %num17
-    print 'vlist len: %s' %len(vlist)
-    print 'glist len: %s' %len(glist)
+    logging.error("IGNOR-ABLE: num of errors: %s (like json.loads error)" %num_error)
+    logging.debug('num17: %s' %num17 )
+    logging.debug('vlist len: %s' %len(vlist) )
+    logging.debug('glist len: %s' %len(glist) )
 
     sql_cb_promo_item = '''
         CREATE TABLE jd_analytic_promo_item_latest (
@@ -205,7 +121,6 @@ def processItemPromo():
             need_history=False,
             sql_create_table=sql_cb_promo_item,
         )
-    print "ret1 for promo = %s" %ret1
     if len(glist)>0:
         ret2 = crawler_helper.persist_db_history_and_lastest_empty_first(
             table_name='jd_analytic_promo_gift',
@@ -215,7 +130,6 @@ def processItemPromo():
             need_history=False,
             sql_create_table=sql_cb_promo_gift,
         )
-    print "ret2 for gift = %s" %ret2
     return _generate_mixed_ret([ret1,ret2])
 
 
@@ -282,13 +196,11 @@ def process_gift_value(for_date = None):
         afr = cursor1.rowcount
     except Exception as e:
         conn.rollback()
-        print e
+        logging.error(e)
     finally:
         conn.close()
 
-
-    #afr = dbhelper.executeSqlWrite1(sql)
-    print "affected rows: %s" %afr
+    logging.debug("affected rows: %s" %afr )
     ret = {
         'status': 0 if afr > 0 else -1,
         'affected_rows': afr,
@@ -301,10 +213,8 @@ def process_gift_value(for_date = None):
 def _extract_reach_deduction_array_of_type(content, repeated_deduction=True):
     repeat_text = "每满"
     if not repeated_deduction:
-        # print "not"
         repeat_text = "满"
         content = content.replace("每满","")
-        # print content
 
     retlist = []
     ret = {
@@ -319,7 +229,6 @@ def _extract_reach_deduction_array_of_type(content, repeated_deduction=True):
         pt = re.compile(u'[\d.]+',re.U)
         pts = pt.findall(item)
         if len(pts)<2:
-            # print '#1 : %s' %pts
             continue
         reach_amount = pts[0]
         deduction_amount = pts[1]
@@ -328,7 +237,6 @@ def _extract_reach_deduction_array_of_type(content, repeated_deduction=True):
             ret['max'] = pts[2]
         tp = (reach_amount,deduction_amount,1 if repeated_deduction else 0)
         retlist.append(tp)
-        # print tp
     return ret
 
 def _extract_reach_deduction_array(content):
@@ -339,17 +247,6 @@ def _extract_reach_deduction_array(content):
         'max': ret1['max']
     }
     return ret
-
-
-
-
-    # index = 999
-    # index1 = -1
-    # while index > 0:
-    #     index = content.find(repeat_text)
-    #     if index>0:
-    #         index1 = content.find(deduction_text, index+1)
-
 
 
 # 15	121244	100295	每满999.00元，可减150.00元现金
@@ -388,7 +285,7 @@ def process_promo_detail():
         and b.sku_id is not NULL
         and b.price is not NULL
     ''' %today
-    # print sql
+    # logging.debug(sql)
     retrows = dbhelper.executeSqlRead(sql, is_dirty=True)
 
     vlist = []
@@ -396,7 +293,7 @@ def process_promo_detail():
 
     dt = timeHelper.getNowLong()
 
-    print 'num total promo_item rows: %s' %len(retrows)
+    logging.debug('num total promo_item rows: %s' %len(retrows) )
     # exit()
 
     num_15 = 0
@@ -419,9 +316,6 @@ def process_promo_detail():
             num_15 += 1
             ret = _extract_reach_deduction_array(content)
 
-            # print content
-            # print ret
-            # print '-'*60
             stat_has_repeat = False
             max_deduction = float(ret['max'])
             for item in ret['data']:
@@ -436,8 +330,8 @@ def process_promo_detail():
                     maxp_ratio = max_deduction*1.0/price if max_deduction > 0 else 1.0
                     could_deduct = 0
                 except Exception as e:
-                    print "reach:%s, deduction:%s" %(reach,deduction)
-                    print e
+                    logging.error("reach:%s, deduction:%s" %(reach,deduction) )
+                    logging.error(e)
                     continue
 
                 if price >= reach and reach>0:
@@ -458,8 +352,6 @@ def process_promo_detail():
         elif code == 19:
 
             sku_str = "%s" %sku_id
-            if sku_str == "264212":
-                print "haha"
 
             num_19 += 1
             # 满几件打折或者降低多少
@@ -475,16 +367,16 @@ def process_promo_detail():
                 deduct_type += 1
 
             if deduct_type==2:
-                print "NEW TYPE OF DISCOUNT FOUND!!!"
-                print content
-                print "NEW TYPE OF DISCOUNT FOUND!!!"
+                logging.error("NEW TYPE OF DISCOUNT FOUND!!!")
+                logging.error(content)
+                logging.error("NEW TYPE OF DISCOUNT FOUND!!!")
 
             pt = re.compile(u'[\d.]+',re.U)
             pts = pt.findall(content)
             if len(pts) != 2:
                 if '可购买热销商品' not in content:
-                    print content
-                    print "NEW PATTERN ABOVE"
+                    logging.error(content)
+                    logging.error("NEW PATTERN ABOVE")
             reach_num = discount = free_num = rf_ratio = None
             reach_num = float(pts[0])
             if deduct_type==0:
@@ -500,9 +392,9 @@ def process_promo_detail():
         else:
             pass
 
-    print "code = 15, cases = %s" %num_15
-    print "code = 15, repeated = %s" %num_15_repeated
-    print "rows to insert = %s" %len(vlist)
+    logging.debug("code = 15, cases = %s" %num_15)
+    logging.debug("code = 15, repeated = %s" %num_15_repeated)
+    logging.debug("rows to insert = %s" %len(vlist) )
 
     sql_cb_deduction = '''
         CREATE TABLE jd_analytic_promo_deduction_latest (
@@ -562,8 +454,8 @@ def process_promo_detail():
         sql_create_table=sql_cb_deduction,
     )
 
-    print "code = 19, cases = %s" %num_19
-    print "rows to insert = %s" %len(vlist19)
+    logging.debug("code = 19, cases = %s" %num_19 )
+    logging.debug("rows to insert = %s" %len(vlist19) )
 
     pret19 = crawler_helper.persist_db_history_and_lastest_empty_first(
         table_name='jd_analytic_promo_discount',
@@ -612,7 +504,7 @@ def process_promo_detail():
 #     return vlist
 
 # def update_promo_results():
-#     print 'Set of long query'
+#     logging.debug('Set of long query')
 #     sql_all = '''
 #     select sku_id,dt,promo_json
 #     from jd_promo_item_latest
@@ -621,11 +513,11 @@ def process_promo_detail():
 #     '''
 #     # retrows = dbhelper.executeSqlRead(sql)
 #     # non_list = _transform_retrow_to_list(retrows, 'sku_id')
-#     # print 'Finished 1 of 6'
+#     # logging.debug('Finished 1 of 6')
 #
 #     # sql_all = 'select sku_id, dt from jd_promo_item_latest'
 #     retrows_all = dbhelper.executeSqlRead(sql_all, is_dirty=True)
-#     print 'Finished 2 of 6'
+#     logging.debug('Finished 2 of 6')
 #     non_list = []
 #     for row in retrows_all:
 #         if len(row['promo_json']) < 100:
@@ -637,7 +529,7 @@ def process_promo_detail():
 #     list5 = list(set(non_list).intersection(set(item_list)))
 #     list55 = _find_time_mismatch(retrows_all,retrows5,'dt','dt')
 #     list5 = list(set(list5) + set(list55))
-#     print 'Finished 3 of 6'
+#     logging.debug('Finished 3 of 6')
 #
 #     sql2 = 'select sku_id,origin_time from jd_analytic_promo_deduction_latest'
 #     retrows2 = dbhelper.executeSqlRead(sql2, is_dirty=True)
@@ -645,7 +537,7 @@ def process_promo_detail():
 #     list2 = list(set(non_list).intersection(set(deduction_list)))
 #     list22 = _find_time_mismatch(retrows_all,retrows2,'dt','origin_time')
 #     list2 = list(set(list2) + set(list22))
-#     print 'Finished 4 of 6'
+#     logging.debug('Finished 4 of 6')
 #
 #     sql3 = 'select sku_id,origin_time from jd_analytic_promo_discount_latest'
 #     retrows3 = dbhelper.executeSqlRead(sql3, is_dirty=True)
@@ -653,7 +545,7 @@ def process_promo_detail():
 #     list3 = list(set(non_list).intersection(set(discount_list)))
 #     list33 = _find_time_mismatch(retrows_all,retrows3,'dt','origin_time')
 #     list3 = list(set(list3) + set(list33))
-#     print 'Finished 5 of 6'
+#     logging.debug('Finished 5 of 6'
 #
 #     sql4 = 'select sku_id,origin_time  from jd_analytic_promo_gift_latest'
 #     retrows4 = dbhelper.executeSqlRead(sql4, is_dirty=True)
@@ -661,11 +553,11 @@ def process_promo_detail():
 #     list4 = list(set(non_list).intersection(set(gift_list)))
 #     list44 = _find_time_mismatch(retrows_all,retrows4,'dt','origin_time')
 #     list4 = list(set(list4) + set(list44))
-#     print 'Finished 6 of 6\n'
-#     print "removing invalid promotions now..."
-#     print "item_promo: %s\ndeduction: %s\ndiscount: %s\ngift: %s" %(len(list5),len(list2),len(list3),len(list4))
+#     logging.debug('Finished 6 of 6\n')
+#     logging.debug("removing invalid promotions now...")
+#     logging.debug("item_promo: %s\ndeduction: %s\ndiscount: %s\ngift: %s" %(len(list5),len(list2),len(list3),len(list4)))
 #
-#     print list5,list2,list3,list4
+#     logging.debug(list5,list2,list3,list4)
 #     exit()
 #
 #     afr5 = _delete_skus_from_tables(list5,['jd_analytic_promo_item_latest'])
@@ -673,15 +565,14 @@ def process_promo_detail():
 #     afr3 = _delete_skus_from_tables(list3,['jd_analytic_promo_discount_latest'])
 #     afr4 = _delete_skus_from_tables(list4,['jd_analytic_promo_gift_latest', 'jd_analytic_promo_gift_valued'])
 #
-#     print "Removed: "
-#     print "item_promo: %s\ndeduction: %s\ndiscount: %s\ngift: %s" %(afr5,afr2,afr3,afr4)
+#     logging.debug("Removed: ")
+#     logging.debug("item_promo: %s\ndeduction: %s\ndiscount: %s\ngift: %s" %(afr5,afr2,afr3,afr4))
 #     return 0
 
 
 if __name__ == "__main__":
-    # print processItemPromo()
-    print process_gift_value()
-    # print process_promo_detail()
-    # update_promo_results()
+    # print(processItemPromo())
+    print(process_gift_value())
+    # print(process_promo_detail())
 
     pass

@@ -2,6 +2,7 @@
 
 from process_class import WorthyProcessBase
 from worthy_analytics import promo_item_trans, worthy_mix, base_price
+import task_logging
 
 func_list = [
     base_price.calculate_min_max_price,     # 90 secs
@@ -12,6 +13,9 @@ func_list = [
 ]
 
 if __name__ == '__main__':
+
+    task_logging.configLogging('analytic_discount')
+
     wp = WorthyProcessBase(
         function_list=func_list,
         is_daily=False,

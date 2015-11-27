@@ -5,6 +5,7 @@ import time
 import worthy_analytics.rating_diff, worthy_analytics.base_price, worthy_analytics.base_rating, worthy_analytics.promo_item_trans
 from worthy_analytics import rating_percentile
 from process_class import WorthyProcessBase
+import task_logging
 
 
 func_list = [
@@ -15,6 +16,8 @@ func_list = [
 ]
 
 if __name__ == "__main__":
+
+    task_logging.configLogging('analytic_rating')
 
     wp = WorthyProcessBase(
         function_list=func_list,

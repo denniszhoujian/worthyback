@@ -7,7 +7,7 @@ import time
 from worthy_analytics import datamining_config
 
 IS_SKU_LEVEL_DEBUGGING = False
-DEBUG_SKU_ID = 188029
+DEBUG_SKU_ID = 617166
 
 col_worthyvalue_weight_dict_deduct_even = {
     'discount_rate': 1,
@@ -196,9 +196,10 @@ def _calculate_weighted_score(param_dict, weight_dict):
         try:
             value = value * math.pow(score,weight)
         except:
-            print param
-            print param_dict
-            print weight_dict
+            logging.error("Error in _calculate_weighted_score:")
+            logging.error(param)
+            logging.error(param_dict)
+            logging.error(weight_dict)
     return value
 
 def caculate_final_price(worthy_row, price=None):
@@ -228,10 +229,10 @@ def caculate_final_price(worthy_row, price=None):
     try:
         deduct_discount_rate = (price*1.0-could_deduct*1.0)/price
     except Exception as e:
-        print e
-        print "price = %s" %price
-        print "sku_id = %s" %worthy_row['sku_id']
-        print "could_deduct = %s" %could_deduct
+        logging.error(e)
+        logging.error("price = %s" %price)
+        logging.error("sku_id = %s" %worthy_row['sku_id'])
+        logging.error("could_deduct = %s" %could_deduct)
 
     # discount
     dr = 1.0
@@ -342,22 +343,22 @@ def _get_catalogy_info_by_category_id(category_id):
 def generate_worthy_mix_main():
 
     t1 = time.time()
-    print '1/4 >>> Join all related tables: price_temp, dynamic, deduction, discount, gift, rating, last-seen, etc...'
+    logging.debug('1/4 >>> Join all related tables: price_temp, dynamic, deduction, discount, gift, rating, last-seen, etc...')
     worthy_rows = _get_merged_tables()
     t2 = time.time()
-    print 'Done, rows read: %s, using seconds: %s\n' %(len(worthy_rows), (t2-t1))
+    logging.debug('Done, rows read: %s, using seconds: %s\n' %(len(worthy_rows), (t2-t1)) )
 
-    print '2/4 >>> Calculating worthy scores and final price'
+    logging.debug('2/4 >>> Calculating worthy scores and final price')
     _calculate_worthy_values(worthy_rows)
     t3 = time.time()
-    print 'Done, using seconds: %s\n' %(t3-t2)
+    logging.debug('Done, using seconds: %0.1f\n' %(t3-t2) )
 
-    print '3/4 >>> Generating data for db insert'
+    logging.debug('3/4 >>> Generating data for db insert')
     insert_list = rows_helper.generate_list_for_db_write(worthy_rows, worthy_columns)
     t4 = time.time()
-    print 'Done, using seconds: %s\n' %(t4-t3)
+    logging.debug('Done, using seconds: %0.1f\n' %(t4-t3) )
 
-    print '4/4 >>> Now writing to db, rows = %s' %len(insert_list)
+    logging.debug('4/4 >>> Now writing to db, rows = %s' %len(insert_list) )
     ret = crawler_helper.persist_db_history_and_latest(
         table_name='jd_worthy',
         num_cols=len(insert_list[0]),
@@ -366,7 +367,7 @@ def generate_worthy_mix_main():
         need_history=False,
     )
     t5 = time.time()
-    print 'Done, using seconds: %s\n' %(t5-t4)
+    logging.debug('Done, using seconds: %0.1f\n' %(t5-t4))
 
     return ret
 
