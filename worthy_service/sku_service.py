@@ -4,20 +4,10 @@ import dbhelper_read
 from datasys.memcachedHelper import memcachedStatic
 from datasys import jd_API,timeHelper
 import time
-import rating_service
+#import rating_service
+import service_config
 
 mc = memcachedStatic.getMemCache()
-
-FRAME_SIZE = 3
-CACHE_TIME_OUT = 3600
-MIN_PRICE_FOR_EXPENSIVE = 800
-MAX_ALLOWED_PRICE = 30000
-IF_USE_REAL_TIME_PRICE = False
-
-DEFAULT_MIN_ALLOWED_PRICE = 20
-DEFAULT_MIN_ALLOWED_WORTHY_VALUE = 0.85
-
-APP_WORTHY_RECENCY_HOURS = 12
 
 def getSkuInfoForList(sku_list):
 
@@ -31,7 +21,7 @@ def getSkuInfoForList(sku_list):
     return vlist
 
 
-def getDiscountItemsAll(category_id = "_EXPENSIVE_", startpos = 0, min_allowed_price=DEFAULT_MIN_ALLOWED_PRICE, min_allowed_discount_rate=DEFAULT_MIN_ALLOWED_WORTHY_VALUE):
+def getDiscountItemsAll(category_id = "_EXPENSIVE_", startpos = 0, min_allowed_price=service_config.SKU_LIST_MIN_ALLOWED_PRICE, min_allowed_discount_rate=service_config.SKU_LIST_MIN_ALLOWED_WORTHY_VALUE):
 
     kstr = memcachedStatic.getKey(category_id)
     mckey = "getDiscountItemsAll_17_%s_%s_%s_%s" %(kstr, startpos, min_allowed_price,min_allowed_discount_rate)
@@ -48,13 +38,16 @@ def getDiscountItemsAll(category_id = "_EXPENSIVE_", startpos = 0, min_allowed_p
         if category_id == "_ALL_":
             pass
         elif category_id == "_EXPENSIVE_":
-            min_allowed_price = MIN_PRICE_FOR_EXPENSIVE
+            min_allowed_price = service_config.SKU_LIST_MIN_ALLOWED_PRICE
         else:
             catalog_sql_part = 'catalog_id = %s and ' %category_id
 
-        dt = timeHelper.getTimeAheadOfNowHours(APP_WORTHY_RECENCY_HOURS, timeHelper.FORMAT_LONG)
+        dt = timeHelper.getTimeAheadOfNowHours(service_config.SKU_LIST_APP_WORTHY_RECENCY_HOURS, timeHelper.FORMAT_LONG)
         sql = '''
-            select *, if(a=34,0,1) as stock_bit from
+            select
+            *
+            -- ,if(a=34,0,1) as stock_bit
+            from
             jd_worthy_latest
             where
             %s
@@ -63,15 +56,17 @@ def getDiscountItemsAll(category_id = "_EXPENSIVE_", startpos = 0, min_allowed_p
             and current_price < %s
             and this_update_time > '%s'
             -- and a <> 34 -- 有货,无货标志34
-            order by stock_bit DESC, worthy_value1 ASC
+            order by
+            -- stock_bit DESC,
+            worthy_value1 ASC
             limit %s, %s
-        ''' %(catalog_sql_part, min_allowed_discount_rate, min_allowed_price, MAX_ALLOWED_PRICE, dt, startpos, FRAME_SIZE)
+        ''' %(catalog_sql_part, min_allowed_discount_rate, min_allowed_price, service_config.SKU_LIST_MAX_ALLOWED_PRICE, dt, startpos, service_config.SKU_LIST_FRAME_SIZE)
         print sql
         retrows = dbhelper_read.executeSqlRead(sql,is_dirty=True)
 
     t2 = time.time()
     # get realtime_price, just try, fail is ok
-    if IF_USE_REAL_TIME_PRICE:
+    if service_config.SKU_LIST_IF_USE_REAL_TIME_PRICE:
         try:
             skulist = []
             for row in retrows:
@@ -100,7 +95,7 @@ def getDiscountItemsAll(category_id = "_EXPENSIVE_", startpos = 0, min_allowed_p
                     row['deduction_2'] = None
 
 
-    mc.set(mckey, retrows, CACHE_TIME_OUT)
+    mc.set(mckey, retrows, service_config.SKU_LIST_CACHE_TIME_OUT)
     print "rows returned: %s" %len(retrows)
     t3 = time.time()
     print "t2-t1 = %0.1f" %(t2-t1)
@@ -109,6 +104,6 @@ def getDiscountItemsAll(category_id = "_EXPENSIVE_", startpos = 0, min_allowed_p
 
 
 if __name__ == "__main__":
-
+    # test case
     getDiscountItemsAll()
 
