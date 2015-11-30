@@ -181,6 +181,11 @@ def getEnabledDateRange(target_date,min_dt,max_dt,num_days):
 
     return {'tplus_enabled':tplus7_enabled,'tminus_enabled':tminus7_enabled}
 
+def getDateRemovedYear(dt):
+    str = "%s" %dt
+    str2 = str[5::]
+    return str2
+
 # def getTimeStringFromDateTime():
 #     pass
 #
@@ -194,15 +199,17 @@ if __name__ == "__main__":
 
     #print getDateDayRange('2015-5-10','2015-5-24')
     #print getTimeLeftTillTomorrow()
-    print getStartTimeYesterday()
-    print getStartTimeDaysBefore(0)
-    print getStartTimeDaysBefore(3)
-    print getTimeAheadOfNowDays(1)
-    print getWebDateAheadOf(1,0)
-    print getTimeLeftTillTomorrow()
-    print getTimeStringFromTimeStamp(1432276813,'%Y-%m-%d %H:%M:%S')
-    # print getDateStrWeekOfYear('2015',1)
-    # print getDateStrWeekOfYear('2015',2)
-    # print getDateStrWeekOfYear('2015',3)
-    print getDateAheadOfTargetDate('2016-6-14',-1)
-    print getDateAheadOfTargetDate('2016-6-14',7)
+    # print getStartTimeYesterday()
+    # print getStartTimeDaysBefore(0)
+    # print getStartTimeDaysBefore(3)
+    # print getTimeAheadOfNowDays(1)
+    # print getWebDateAheadOf(1,0)
+    # print getTimeLeftTillTomorrow()
+    # print getTimeStringFromTimeStamp(1432276813,'%Y-%m-%d %H:%M:%S')
+    # # print getDateStrWeekOfYear('2015',1)
+    # # print getDateStrWeekOfYear('2015',2)
+    # # print getDateStrWeekOfYear('2015',3)
+    # print getDateAheadOfTargetDate('2016-6-14',-1)
+    # print getDateAheadOfTargetDate('2016-6-14',7)
+    # print getDateRemovedYear('2015-4-3 20:33:33')
+    print getDateAheadOfTargetDate('2015-4-3',1)

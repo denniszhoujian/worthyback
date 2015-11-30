@@ -12,24 +12,22 @@ DEBUG_SKU_ID = 617166
 
 col_worthyvalue_weight_dict_deduct_even = {
     'discount_rate': 1,
-    # 'max_deduction_ratio': 1,
-    # 'deduction_score': 1,
     'deduction_final_score': 1.0,
     'discount': 1,
     'rf_ratio': 1,
     'gift_ratio': 1,
     'rating_score_diff': 0.0,
+    'min_price_reached': 0.0,
 }
 
 col_worthyvalue_weight_dict_acitivity = {
     'discount_rate': 0.0,
-    # 'max_deduction_ratio': 1.0,
-    # 'deduction_score': 0.8,
     'deduction_final_score': 1.0,
     'discount': 0.75,
     'rf_ratio': 0.6,
     'gift_ratio': 0.3,
-    'rating_score_diff': 0.0
+    'rating_score_diff': 0.0,
+    'min_price_reached': 1.0,
 }
 
 worthy_columns = [
@@ -91,6 +89,8 @@ worthy_columns = [
     'sample_count',
     'catalog_id',   # added 1123
     'catalog_name',  # added 1123
+    'min_price_reached',    # added 1130
+    'this_update_date',     # added 1130
 ]
 
 def _get_merged_tables():
@@ -146,7 +146,8 @@ def _get_merged_tables():
     f.rating_sample_num as category_rating_score,
     f.percentile_rating_score as rating_score_diff,
     g.first_seen_date,
-    a.sample_count
+    a.sample_count,
+    CURRENT_DATE() as this_update_date
 
     from
 
@@ -163,7 +164,6 @@ def _get_merged_tables():
     left join jd_analytic_promo_gift_valued e
     on a.sku_id = e.sku_id
 
---     left join jd_analytic_item_rating_diff f
     left join jd_analytic_rating_percentile_latest f
     on a.sku_id = f.sku_id
 
@@ -245,6 +245,17 @@ def caculate_final_price(worthy_row, price=None):
     return final_dr * price
 
 
+def _calculate_ladder_score(value, matrix):
+    ret = None
+    for key in matrix:
+        ret = matrix[key]
+        break
+    for key in matrix:
+        if value>=key:
+            ret = matrix[key]
+    return ret
+
+
 def _calculate_worthy_values(worthy_rows):
     for sku in worthy_rows:
         sku['final_price'] = caculate_final_price(sku,price=None)
@@ -252,17 +263,27 @@ def _calculate_worthy_values(worthy_rows):
         cata_info = _get_catalogy_info_by_category_id(sku['category_id'])
         sku['catalog_id'] = cata_info['catalog_id'] if cata_info is not None else None
         sku['catalog_name'] = cata_info['catalog_name'] if cata_info is not None else None
+        # history lowest
+        cur_price = int(sku['current_price'])
+        min_price = int(sku['min_price'])
+        max_price = int(sku['max_price'])
+        sku['min_price_reached'] = 1
+        if cur_price==min_price and min_price!=max_price and min_price*1.0/(max_price*1.0) < datamining_config.SKU_MIN_PRICE_REACHED_MINIMUM_REQUIRED_DISCOUNT_RATE:
+            sku['min_price_reached'] = 2
 
-        col_name_list = [
-            'discount_rate',
-            # 'max_deduction_ratio',
-            # 'deduction_score',
-            'deduction_final_score',
-            'discount',
-            'rf_ratio',
-            'gift_ratio',
-            'rating_score_diff',
-        ]
+        # col_name_list = [
+        #     'discount_rate',
+        #     # 'max_deduction_ratio',
+        #     # 'deduction_score',
+        #     'deduction_final_score',
+        #     'discount',
+        #     'rf_ratio',
+        #     'gift_ratio',
+        #     'rating_score_diff',
+        # ]
+        col_name_list = []
+        for param_key in datamining_config.col_worthyvalue_weight_dict_1:
+            col_name_list.append(param_key)
 
         deduction_score = 1.0
         d1 = sku['max_deduction_ratio']
@@ -285,7 +306,7 @@ def _calculate_worthy_values(worthy_rows):
                 continue
             if sku[item] is not None:
                 val  = float(sku[item])
-                if val > 0.0:
+                if val > 0.0:   ###################### NOTE THIS ###################
                     param_dict[item] = val
                     # discount should be divided by 10
                     if item in ['discount']:
@@ -304,8 +325,9 @@ def _calculate_worthy_values(worthy_rows):
                         score = float(param_dict[item])
                         param_dict[item] = 1 - (1.0-score)/math.pow((reach_num-1.0),datamining_config.DISCOUNT_REACH_NUM_POWER_BASE)
                     if item in ['rating_score_diff']:
-                        val2 = 1.0 - val
-                        param_dict[item] = val2
+                        param_dict[item] = _calculate_ladder_score(val,datamining_config.RATING_PERCENTILE_SCORE_MATRIX)
+                    if item in ['min_price_reached']:
+                        param_dict[item] = _calculate_ladder_score(val,datamining_config.MIN_PRICE_REACHED_SCORE_MATRIX)
 
 
         # The most easy algorithm to calculate final worthy score
@@ -365,7 +387,7 @@ def generate_worthy_mix_main():
         num_cols=len(insert_list[0]),
         value_list=insert_list,
         is_many=True,
-        need_history=False,
+        need_history=True,
     )
     t5 = time.time()
     logging.debug('Done, using seconds: %0.1f\n' %(t5-t4))
@@ -374,4 +396,6 @@ def generate_worthy_mix_main():
 
 
 if __name__ == "__main__":
+    from tasks import task_logging
+    task_logging.configLogging('worthy_mix')
     print generate_worthy_mix_main()

@@ -17,7 +17,7 @@ def persist_db_history_and_latest(table_name, num_cols, value_list, is_many=True
     tcur = t1
     affected_rows = 99999
     affected_rows3 = 99999
-    if need_flow:
+    if need_history:
         sql = 'replace into %s values(%s)' %(table_name,values_str)
         affected_rows = dbhelper.executeSqlWriteMany(sql,value_list,is_dirty=True)
         t2 = time.time()

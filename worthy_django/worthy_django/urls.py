@@ -11,7 +11,7 @@ urlpatterns = [
 
     url(r'^category/list$', 'worthy.jsonserv.category_json.getCategoryListAll', name='category all'),
 
-
     url(r'^sku/list$', 'worthy.jsonserv.item_list.getDiscountItemsAll', name='getDiscountItemsAll'),
+    url(r'^sku/info$', 'worthy.jsonserv.sku_analytics.getSkuAnalyticsInfo', name='getSkuAnalyticsInfo'),
 
 ]
