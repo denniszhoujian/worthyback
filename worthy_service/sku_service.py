@@ -210,8 +210,11 @@ def _getDiscountHistory_of_Sku_as_list(sku_id):
         types = row['type']
         if types == 'gift':
             row['content'] = u'赠送礼物,价值￥%0.0f'%row['content']
-
-        score = float(row['score'])
+        score = 0
+        try:
+            score = float(row['score'])
+        except:
+            pass
         row['score'] = int(min(int(score*10),int(5)))
 
     return retrows
@@ -227,15 +230,26 @@ def getSingleSku_Mixed_Info(sku_id):
     ret = {}
     if sku_id is None:
         return ret
-    # try:
-    if True:
+    try:
         ret['worthy'] = getWorthyInfo_of_skuid(sku_id)[0]
+    except:
+        pass
+    try:
         ret['price_chart'] = getPriceHistory_forChart(sku_id)
+    except:
+        pass
+    try:
         ret['discount_history_list'] = getDiscountHistory_of_Sku_for_table(sku_id)
+    except:
+        pass
+    try:
         ret['images'] = getImages_of_sku_as_list(sku_id)
+    except:
+        pass
+    try:
         ret['discount_list'] = getDiscounts_of_sku_as_list(sku_id)
-    # except Exception as e:
-    #     print e
+    except Exception as e:
+        print e
     return ret
 
 
@@ -243,6 +257,6 @@ if __name__ == "__main__":
     # test case
     # getDiscountItemsAll()
 
-    print getSingleSku_Mixed_Info(1066246)
+    print getSingleSku_Mixed_Info(2136882)
 
     pass
