@@ -203,7 +203,7 @@ def _getDiscountHistory_of_Sku_as_list(sku_id):
         UNION
         select this_update_date as dt, 'gift' as type, gift_price*gift_num as content, 0 as score from jd_worthy where sku_id=%s and gift_price is not NULL
         ) a
-    order by dt ASC
+    order by dt DESC
     ''' %(sku_id,sku_id,sku_id)
     retrows = dbhelper_read.executeSqlRead(sql,is_dirty=True)
     for row in retrows:
