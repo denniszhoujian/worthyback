@@ -60,14 +60,19 @@ def processItemPromo():
                 # gift
                 gifts = tag['gifts']
                 for gift in gifts:
-                    gift_name = gift['nm']
-                    gift_num = gift['num'] if 'num' in gift else 1
-                    gift_image = gift['mp'] if 'mp' in gift else ""
-                    gift_sku_id = gift['sid'] if 'sid' in gift else ""
-                    gift_gt = gift['gt'] if 'gt' in gift else ""
-                    gift_gs = gift['gs'] if 'gs' in gift else ""
-                    tp_gift = [sku_id,dt,pid,code, name, gift_name, gift_num, gift_image, gift_sku_id, gift_gt, gift_gs, update_date]
-                    glist.append(tp_gift)
+                    gift_name = "赠品"
+                    try:
+                        gift_name = gift['nm']
+                        gift_num = gift['num'] if 'num' in gift else 1
+                        gift_image = gift['mp'] if 'mp' in gift else ""
+                        gift_sku_id = gift['sid'] if 'sid' in gift else ""
+                        gift_gt = gift['gt'] if 'gt' in gift else ""
+                        gift_gs = gift['gs'] if 'gs' in gift else ""
+                        tp_gift = [sku_id,dt,pid,code, name, gift_name, gift_num, gift_image, gift_sku_id, gift_gt, gift_gs, update_date]
+                        glist.append(tp_gift)
+                    except Exception as e:
+                        logging.debug("error in extracting gift info for sku_id = %s"%sku_id)
+                        logging.debug("%s" %e)
             else:
                 content = tag['content']
                 adurl = tag['adurl'] if 'adurl' in tag else ""
@@ -286,7 +291,7 @@ def process_promo_detail():
         and b.sku_id is not NULL
         and b.price is not NULL
     ''' %today
-    # logging.debug(sql)
+    logging.debug(sql)
     retrows = dbhelper.executeSqlRead(sql, is_dirty=True)
 
     vlist = []
@@ -469,111 +474,12 @@ def process_promo_detail():
 
     return _generate_mixed_ret([pret15, pret19])
 
-# def _transform_retrow_to_list(retrows, col_name):
-#     list2 = []
-#     for row2 in retrows:
-#         list2.append(row2[col_name])
-#     return list2
-
-# def _delete_skus_from_tables(sku_list,table_list):
-#     if len(sku_list)==0 or len(table_list)==0:
-#         return 0
-#     sku_str = ','.join(sku_list)
-#     total_afr = 0
-#     for table in table_list:
-#         sql = 'delete from %s where sku_id in (%s)' %(table, sku_str)
-#         afr = dbhelper.executeSqlWrite1(sql)
-#         total_afr += afr
-#     return total_afr
-#
-# def _transform_retrows_to_dict(retrows, col1_name, col2_name):
-#     ret = {}
-#     for row in retrows:
-#         id = row[col1_name]
-#         if id in ret:
-#             ret[id].append(row[col2_name])
-#         else:
-#             ret[id] = [row[col2_name],]
-#     return ret
-#
-# def _find_time_mismatch(retrows1,retrows2,col1_name,col2_name):
-#     list1_dict = _transform_retrows_to_dict(retrows1,'sku_id',col1_name)
-#     vlist = []
-#     for row in retrows2:
-#         if row[col2_name] not in list1_dict[row['sku_id']]:
-#             vlist.append(row['sku_id'])
-#     return vlist
-
-# def update_promo_results():
-#     logging.debug('Set of long query')
-#     sql_all = '''
-#     select sku_id,dt,promo_json
-#     from jd_promo_item_latest
-#     -- where
-#     -- length(promo_json)<100
-#     '''
-#     # retrows = dbhelper.executeSqlRead(sql)
-#     # non_list = _transform_retrow_to_list(retrows, 'sku_id')
-#     # logging.debug('Finished 1 of 6')
-#
-#     # sql_all = 'select sku_id, dt from jd_promo_item_latest'
-#     retrows_all = dbhelper.executeSqlRead(sql_all, is_dirty=True)
-#     logging.debug('Finished 2 of 6')
-#     non_list = []
-#     for row in retrows_all:
-#         if len(row['promo_json']) < 100:
-#             non_list.append(row['sku_id'])
-#
-#     sql5 = 'select sku_id,dt from jd_analytic_promo_item_latest'
-#     retrows5 = dbhelper.executeSqlRead(sql5, is_dirty=True)
-#     item_list = _transform_retrow_to_list(retrows5, 'sku_id')
-#     list5 = list(set(non_list).intersection(set(item_list)))
-#     list55 = _find_time_mismatch(retrows_all,retrows5,'dt','dt')
-#     list5 = list(set(list5) + set(list55))
-#     logging.debug('Finished 3 of 6')
-#
-#     sql2 = 'select sku_id,origin_time from jd_analytic_promo_deduction_latest'
-#     retrows2 = dbhelper.executeSqlRead(sql2, is_dirty=True)
-#     deduction_list = _transform_retrow_to_list(retrows2, 'sku_id')
-#     list2 = list(set(non_list).intersection(set(deduction_list)))
-#     list22 = _find_time_mismatch(retrows_all,retrows2,'dt','origin_time')
-#     list2 = list(set(list2) + set(list22))
-#     logging.debug('Finished 4 of 6')
-#
-#     sql3 = 'select sku_id,origin_time from jd_analytic_promo_discount_latest'
-#     retrows3 = dbhelper.executeSqlRead(sql3, is_dirty=True)
-#     discount_list = _transform_retrow_to_list(retrows3, 'sku_id')
-#     list3 = list(set(non_list).intersection(set(discount_list)))
-#     list33 = _find_time_mismatch(retrows_all,retrows3,'dt','origin_time')
-#     list3 = list(set(list3) + set(list33))
-#     logging.debug('Finished 5 of 6'
-#
-#     sql4 = 'select sku_id,origin_time  from jd_analytic_promo_gift_latest'
-#     retrows4 = dbhelper.executeSqlRead(sql4, is_dirty=True)
-#     gift_list = _transform_retrow_to_list(retrows4, 'sku_id')
-#     list4 = list(set(non_list).intersection(set(gift_list)))
-#     list44 = _find_time_mismatch(retrows_all,retrows4,'dt','origin_time')
-#     list4 = list(set(list4) + set(list44))
-#     logging.debug('Finished 6 of 6\n')
-#     logging.debug("removing invalid promotions now...")
-#     logging.debug("item_promo: %s\ndeduction: %s\ndiscount: %s\ngift: %s" %(len(list5),len(list2),len(list3),len(list4)))
-#
-#     logging.debug(list5,list2,list3,list4)
-#     exit()
-#
-#     afr5 = _delete_skus_from_tables(list5,['jd_analytic_promo_item_latest'])
-#     afr2 = _delete_skus_from_tables(list2,['jd_analytic_promo_deduction_latest'])
-#     afr3 = _delete_skus_from_tables(list3,['jd_analytic_promo_discount_latest'])
-#     afr4 = _delete_skus_from_tables(list4,['jd_analytic_promo_gift_latest', 'jd_analytic_promo_gift_valued'])
-#
-#     logging.debug("Removed: ")
-#     logging.debug("item_promo: %s\ndeduction: %s\ndiscount: %s\ngift: %s" %(afr5,afr2,afr3,afr4))
-#     return 0
-
 
 if __name__ == "__main__":
-    # print(processItemPromo())
-    print(process_gift_value())
+    from tasks import task_logging
+    task_logging.configLogging('debug_promo_item_trans')
+    print(processItemPromo())
+    # print(process_gift_value())
     # print(process_promo_detail())
 
     pass
