@@ -267,8 +267,9 @@ def _calculate_worthy_values(worthy_rows):
         cur_price = int(sku['current_price'])
         min_price = int(sku['min_price'])
         max_price = int(sku['max_price'])
+        median_price = int(sku['median_price'])
         sku['min_price_reached'] = 1
-        if cur_price==min_price and min_price!=max_price and min_price*1.0/(max_price*1.0) < datamining_config.SKU_MIN_PRICE_REACHED_MINIMUM_REQUIRED_DISCOUNT_RATE:
+        if cur_price==min_price and min_price!=max_price and min_price*1.0/(median_price*1.0) < datamining_config.SKU_MIN_PRICE_REACHED_MINIMUM_REQUIRED_DISCOUNT_RATE:
             sku['min_price_reached'] = 2
 
         # col_name_list = [
