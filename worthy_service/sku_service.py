@@ -25,19 +25,40 @@ def _processSkuThumbInfo(retrows):
             print e
 
     for row in retrows:
-        # diff_stars = 3
-        # if row['rating_score_diff'] is not None:
-        #     diff_stars = rating_service.getRatingDiffScore(row['rating_score_diff'])
-        # row['diff_stars'] = diff_stars
+
+        deduction_list = []
+
         if row['max_deduction'] is not None:
             if float(row['max_deduction']) > 90000000:
                 row['max_deduction'] = -1.0
+            tp = {
+                'name': '满减',
+                'content': '满%0.0f,减%0.0f现金' %(row['reach'],row['deduction'])
+            }
+            deduction_list.append(tp)
+
+
         if row['reach_2'] is not None:
             if row['reach'] is not None:
+                # judge for duplicate entry on deductions
                 if abs(float(row['reach_2'])-float(row['reach'])) < 0.001:
-                    print('<0.001')
                     row['reach_2'] = None
                     row['deduction_2'] = None
+                else:
+                    tp = {
+                        'name': '满减',
+                        'content': '满%0.0f,减%0.0f现金' %(row['reach_2'],row['deduction_2'])
+                    }
+                    deduction_list.append(tp)
+
+        if row['reach_num'] is not None:
+            tp = {
+                'name': '打折',
+                'content': row['content_discount']
+            }
+            deduction_list.append(tp)
+
+        row['deducts'] = deduction_list
 
     pass
 
@@ -62,7 +83,7 @@ def getDiscountItemsAll(category_id = "_EXPENSIVE_", startpos = 0, min_allowed_p
         elif category_id == "_EXPENSIVE_":
             min_allowed_price = service_config.SKU_LIST_MIN_PRICE_FOR_EXPENSIVE
         else:
-            catalog_sql_part = 'catalog_id = %s and ' %category_id
+            catalog_sql_part = 'catalog_id = %s and ' %int(category_id)
 
         dt = timeHelper.getTimeAheadOfNowHours(service_config.SKU_LIST_APP_WORTHY_RECENCY_HOURS, timeHelper.FORMAT_LONG)
         sql = '''
