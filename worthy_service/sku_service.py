@@ -4,7 +4,6 @@ import dbhelper_read
 from datasys.memcachedHelper import memcachedStatic
 from datasys import jd_API,timeHelper
 import time
-#import rating_service
 import service_config
 import service_helper
 
@@ -77,7 +76,7 @@ def getDiscountItemsAll(category_id = "_EXPENSIVE_", startpos = 0, min_allowed_p
         print "ok cached"
         retrows = mcv
     else:
-        catalog_sql_part = " catalog_id is not null and "
+        catalog_sql_part = " catalog_id is not null and catalog_id<>1000 and catalog_id<>2000 and catalog_id<>3000 and "
         if category_id == "_ALL_":
             pass
         elif category_id == "_EXPENSIVE_":
