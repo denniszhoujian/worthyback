@@ -32,11 +32,24 @@ def getDiscountItemsAll(request):
     except:
         pass
 
+
+    querykw = None
+    try:
+        querykw = request.GET['query']
+        print "query = %s" %querykw
+    except:
+        pass
+
     ret = None
-    if min_price is not None and min_discount_rate is not None and min_price > 0 and min_discount_rate > 0 and min_discount_rate < 1:
-        ret = sku_service.getDiscountItemsAll(category_id, startpos, min_price,min_discount_rate)
-    else:
-        ret = sku_service.getDiscountItemsAll(category_id,startpos)
+
+    use_query = False
+    if querykw is not None:
+        if len(querykw.strip())>1:
+            use_query = True
+            query2 = querykw.replace('"','').replace("'",'').replace('OR',' ')
+            ret = sku_service.getSkuListByQuery(query2,startpos)
+    if not use_query:
+        ret = sku_service.getSkuListByCatalogID(category_id,startpos)
 
     resp = jsonHelper.getJSONPStr(request,ret)
     return HttpResponse(resp, content_type="application/json")

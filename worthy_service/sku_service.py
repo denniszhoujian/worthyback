@@ -1,11 +1,12 @@
 # encoding: utf-8
 
-import dbhelper_read
-from datasys.memcachedHelper import memcachedStatic
-from datasys import jd_API,timeHelper
 import time
+
+import dbhelper_read
 import service_config
-import service_helper
+from datasys import jd_API,timeHelper
+from datasys.memcachedHelper import memcachedStatic
+import rerank_service
 
 mc = memcachedStatic.getMemCache()
 
@@ -62,60 +63,146 @@ def _processSkuThumbInfo(retrows):
     pass
 
 
+def getSkuListByCatalogID(catalog_id = '_EXPENSIVE_',startpos=0):
+    idlist = getSku_ID_ListByCatalogID(category_id=catalog_id, startpos=startpos)
+    thumb_list = rerank_service.rerank_list(idlist,apply_category_mixer=True)
+    retlist = _get_frame_from_list(thumb_list,startpos)
+    _processSkuThumbInfo(retlist)
+    return retlist
 
-def getDiscountItemsAll(category_id = "_EXPENSIVE_", startpos = 0, min_allowed_price=service_config.SKU_LIST_MIN_ALLOWED_PRICE, min_allowed_discount_rate=service_config.SKU_LIST_MIN_ALLOWED_WORTHY_VALUE):
 
-    kstr = memcachedStatic.getKey(category_id)
-    mckey = "getDiscountItemsAll_17_%s_%s_%s_%s" %(kstr, startpos, min_allowed_price,min_allowed_discount_rate)
-    print "memcache key = %s" %mckey
-    mcv = None
-    # mcv = mc.get(mckey)
+def getSkuListByQuery(query,startpos=0):
+    thumb_list = rerank_service.rerank_list_query(query)
+    retlist = _get_frame_from_list(thumb_list,startpos)
+    _processSkuThumbInfo(retlist)
+    return retlist
+
+def _get_frame_from_list(thumb_list,startpos):
+    if startpos >= len(thumb_list):
+        return []
+    maxpos = len(thumb_list)
+    endpos = startpos + service_config.SKU_LIST_FRAME_SIZE - 1
+    if endpos > maxpos:
+        endpos = maxpos
+
+    return thumb_list[startpos:endpos]
+
+
+def getSku_ID_ListByCatalogID(category_id = "_EXPENSIVE_", startpos = 0, min_allowed_price=service_config.SKU_LIST_MIN_ALLOWED_PRICE, min_allowed_discount_rate=service_config.SKU_LIST_MIN_ALLOWED_WORTHY_VALUE):
+
     retrows = None
     t1 = time.time()
-    if mcv is not None:
-        print "ok cached"
-        retrows = mcv
-    else:
-        catalog_sql_part = " catalog_id is not null and catalog_id<>1000 and catalog_id<>2000 and catalog_id<>3000 and "
-        if category_id == "_ALL_":
-            pass
-        elif category_id == "_EXPENSIVE_":
-            min_allowed_price = service_config.SKU_LIST_MIN_PRICE_FOR_EXPENSIVE
-        else:
-            catalog_sql_part = 'catalog_id = %s and ' %int(category_id)
 
-        dt = timeHelper.getTimeAheadOfNowHours(service_config.SKU_LIST_APP_WORTHY_RECENCY_HOURS, timeHelper.FORMAT_LONG)
-        sql = '''
+    catalog_sql_part = " catalog_id is not null and catalog_id<>1000 and catalog_id<>2000 and catalog_id<>3000 and "
+    if category_id == "_ALL_":
+        pass
+    elif category_id == "_EXPENSIVE_":
+        min_allowed_price = service_config.SKU_LIST_MIN_PRICE_FOR_EXPENSIVE
+    else:
+        catalog_sql_part = 'catalog_id = %s and ' %int(category_id)
+
+    dt = timeHelper.getTimeAheadOfNowHours(service_config.SKU_LIST_APP_WORTHY_RECENCY_HOURS, timeHelper.FORMAT_LONG)
+    sql = '''
+        select
+        sku_id
+        -- ,if(a=34,0,1) as stock_bit
+        from
+        jd_worthy_latest
+        where
+        %s
+        worthy_value1 < %s
+        and current_price >= %s
+        and current_price < %s
+        and this_update_time > '%s'
+        -- and a <> 34 -- 有货,无货标志34
+        order by
+        -- stock_bit DESC,
+        worthy_value1 ASC
+        -- limit %s, %s
+    ''' %(catalog_sql_part, min_allowed_discount_rate, min_allowed_price, service_config.SKU_LIST_MAX_ALLOWED_PRICE, dt, startpos, service_config.SKU_LIST_FRAME_SIZE)
+    # print sql
+    retrows = dbhelper_read.executeSqlRead(sql,is_dirty=True)
+    vlist = []
+    for row in retrows:
+        vlist.append(row['sku_id'])
+    return vlist
+
+
+# def getDiscountItemsAll(category_id = "_EXPENSIVE_", startpos = 0, min_allowed_price=service_config.SKU_LIST_MIN_ALLOWED_PRICE, min_allowed_discount_rate=service_config.SKU_LIST_MIN_ALLOWED_WORTHY_VALUE):
+#
+#     kstr = memcachedStatic.getKey(category_id)
+#     mckey = "getDiscountItemsAll_17_%s_%s_%s_%s" %(kstr, startpos, min_allowed_price,min_allowed_discount_rate)
+#     print "memcache key = %s" %mckey
+#     mcv = None
+#     # mcv = mc.get(mckey)
+#     retrows = None
+#     t1 = time.time()
+#     if mcv is not None:
+#         print "ok cached"
+#         retrows = mcv
+#     else:
+#         catalog_sql_part = " catalog_id is not null and catalog_id<>1000 and catalog_id<>2000 and catalog_id<>3000 and "
+#         if category_id == "_ALL_":
+#             pass
+#         elif category_id == "_EXPENSIVE_":
+#             min_allowed_price = service_config.SKU_LIST_MIN_PRICE_FOR_EXPENSIVE
+#         else:
+#             catalog_sql_part = 'catalog_id = %s and ' %int(category_id)
+#
+#         dt = timeHelper.getTimeAheadOfNowHours(service_config.SKU_LIST_APP_WORTHY_RECENCY_HOURS, timeHelper.FORMAT_LONG)
+#         sql = '''
+#             select
+#             *
+#             -- ,if(a=34,0,1) as stock_bit
+#             from
+#             jd_worthy_latest
+#             where
+#             %s
+#             worthy_value1 < %s
+#             and current_price >= %s
+#             and current_price < %s
+#             and this_update_time > '%s'
+#             -- and a <> 34 -- 有货,无货标志34
+#             order by
+#             -- stock_bit DESC,
+#             worthy_value1 ASC
+#             limit %s, %s
+#         ''' %(catalog_sql_part, min_allowed_discount_rate, min_allowed_price, service_config.SKU_LIST_MAX_ALLOWED_PRICE, dt, startpos, service_config.SKU_LIST_FRAME_SIZE)
+#         print sql
+#         retrows = dbhelper_read.executeSqlRead(sql,is_dirty=True)
+#
+#     t2 = time.time()
+#     # get realtime_price, just try, fail is ok
+#     _processSkuThumbInfo(retrows)
+#
+#     mc.set(mckey, retrows, service_config.SKU_LIST_CACHE_TIME_OUT)
+#     print "rows returned: %s" %len(retrows)
+#     t3 = time.time()
+#     print "t2-t1 = %0.1f" %(t2-t1)
+#     print "t3-t2 = %0.1f" %(t3-t2)
+#     return retrows
+
+
+
+def getWorthyInfo_of_skuid_list(sku_id_list):
+    sku_id_list2 = []
+    for item in sku_id_list:
+        sku_id_list2.append("%s" %item)
+    dt = timeHelper.getTimeAheadOfNowHours(service_config.SKU_LIST_APP_WORTHY_RECENCY_HOURS, timeHelper.FORMAT_LONG)
+    id_clause = ','.join(sku_id_list2)
+
+    sql = '''
             select
-            *
-            -- ,if(a=34,0,1) as stock_bit
+            *, instr('%s',sku_id) as dd
             from
             jd_worthy_latest
             where
-            %s
-            worthy_value1 < %s
-            and current_price >= %s
-            and current_price < %s
-            and this_update_time > '%s'
-            -- and a <> 34 -- 有货,无货标志34
-            order by
-            -- stock_bit DESC,
-            worthy_value1 ASC
-            limit %s, %s
-        ''' %(catalog_sql_part, min_allowed_discount_rate, min_allowed_price, service_config.SKU_LIST_MAX_ALLOWED_PRICE, dt, startpos, service_config.SKU_LIST_FRAME_SIZE)
-        print sql
-        retrows = dbhelper_read.executeSqlRead(sql,is_dirty=True)
-
-    t2 = time.time()
-    # get realtime_price, just try, fail is ok
-    _processSkuThumbInfo(retrows)
-
-
-    mc.set(mckey, retrows, service_config.SKU_LIST_CACHE_TIME_OUT)
-    print "rows returned: %s" %len(retrows)
-    t3 = time.time()
-    print "t2-t1 = %0.1f" %(t2-t1)
-    print "t3-t2 = %0.1f" %(t3-t2)
+            this_update_time > '%s'
+            and sku_id in (%s)
+            order by dd ASC
+        ''' %(id_clause,dt,id_clause)
+    # print sql
+    retrows = dbhelper_read.executeSqlRead(sql,is_dirty=True)
     return retrows
 
 
@@ -277,6 +364,8 @@ if __name__ == "__main__":
     # test case
     # getDiscountItemsAll()
 
-    print getSingleSku_Mixed_Info(2136882)
+    # print getSingleSku_Mixed_Info(2136882)
+    print getSkuListByCatalogID("_EXPENSIVE_",30)
+    # print getSkuListByQuery('手机',30)
 
     pass
