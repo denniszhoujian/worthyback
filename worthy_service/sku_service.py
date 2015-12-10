@@ -62,26 +62,46 @@ def _processSkuThumbInfo(retrows):
 
     pass
 
+MEMCACHE_KEY_PREFIX_CATALOGID = "MEMCACHE_KEY_PREFIX_CATALOGID"
+MEMCACHE_KEY_PREFIX_QUERY = "MEMCACHE_KEY_PREFIX_QUERY"
 
 def getSkuListByCatalogID(catalog_id = '_EXPENSIVE_',startpos=0):
-    idlist = getSku_ID_ListByCatalogID(category_id=catalog_id, startpos=startpos)
-    thumb_list = rerank_service.rerank_list(idlist,apply_category_mixer=True)
-    retlist = _get_frame_from_list(thumb_list,startpos)
+    keystr = memcachedStatic.getKey("%s" %catalog_id)
+    mckey = "%s::%s" %(MEMCACHE_KEY_PREFIX_CATALOGID, keystr)
+    #mcv is reranked result of all returned skus
+    mcv = mc.get(mckey)
+    if mcv is None:
+        idlist = getSku_ID_ListByCatalogID(category_id=catalog_id, startpos=startpos)
+        mcv = rerank_service.rerank_list(idlist,apply_category_mixer=True)
+        mc.set(mckey,mcv,service_config.SKU_LIST_CACHE_TIME_OUT)
+    else:
+        print "OK cached"
+
+    partlist = _get_frame_from_list(mcv,startpos)
+    retlist = getWorthyInfo_of_skuid_list(partlist)
     _processSkuThumbInfo(retlist)
     return retlist
 
 
 def getSkuListByQuery(query,startpos=0):
-    thumb_list = rerank_service.rerank_list_query(query)
-    retlist = _get_frame_from_list(thumb_list,startpos)
+    keystr = memcachedStatic.getKey(query)
+    mckey = "%s::%s" %(MEMCACHE_KEY_PREFIX_CATALOGID, keystr)
+    #mcv is reranked result of all returned skus
+    mcv = mc.get(mckey)
+    if mcv is None:
+        mcv = rerank_service.rerank_list_query(query)
+        mc.set(mckey,mcv,service_config.SKU_LIST_CACHE_TIME_OUT)
+    partlist = _get_frame_from_list(mcv,startpos)
+    retlist = getWorthyInfo_of_skuid_list(partlist)
     _processSkuThumbInfo(retlist)
     return retlist
+
 
 def _get_frame_from_list(thumb_list,startpos):
     if startpos >= len(thumb_list):
         return []
     maxpos = len(thumb_list)
-    endpos = startpos + service_config.SKU_LIST_FRAME_SIZE - 1
+    endpos = startpos + service_config.SKU_LIST_FRAME_SIZE #- 1
     if endpos > maxpos:
         endpos = maxpos
 
@@ -185,6 +205,8 @@ def getSku_ID_ListByCatalogID(category_id = "_EXPENSIVE_", startpos = 0, min_all
 
 
 def getWorthyInfo_of_skuid_list(sku_id_list):
+    if len(sku_id_list) == 0:
+        return []
     sku_id_list2 = []
     for item in sku_id_list:
         sku_id_list2.append("%s" %item)

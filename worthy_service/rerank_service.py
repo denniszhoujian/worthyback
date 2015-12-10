@@ -18,13 +18,13 @@ def rerank_list_query(query):
 
     idlist = sku_index_access.getSearchResult(query)
     thumb_list = list(sku_service.getWorthyInfo_of_skuid_list(idlist))
-    _rerank_thumb_list(thumb_list,apply_category_mixer=False)
-    return thumb_list
+    retlist = _rerank_thumb_list(thumb_list,apply_category_mixer=False)
+    return retlist
 
 def rerank_list(idlist, apply_category_mixer=True):
     thumb_list = list(sku_service.getWorthyInfo_of_skuid_list(idlist))
-    _rerank_thumb_list(thumb_list,apply_category_mixer=apply_category_mixer)
-    return thumb_list
+    retlist = _rerank_thumb_list(thumb_list,apply_category_mixer=apply_category_mixer)
+    return retlist # was thumb_list
 
 def _rerank_thumb_list(thumb_list, apply_category_mixer = False):
     dict_comment = defaultdict(int)
@@ -61,7 +61,12 @@ def _rerank_thumb_list(thumb_list, apply_category_mixer = False):
                 pass #for debug only
         if fulfill==0:
             break
-    return thumb_list   # it's ok to not return the list, but this is simple and consistent for use
+
+    retlist = []
+    for thumb in thumb_list:
+        retlist.append(thumb['sku_id'])
+    #return thumb_list   # it's ok to not return the list, but this is simple and consistent for use
+    return retlist
 
 if __name__ == "__main__":
-    rerank_list_query('包')
+    print rerank_list_query('包')
