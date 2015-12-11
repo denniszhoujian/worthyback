@@ -25,8 +25,8 @@ def calculate_min_max_price():
 
         where
 
-        update_time > '2015-11-14 0:00:00'  -- 双十一期间价格不能算啊...
-        and price > 0
+        -- update_time > '2015-11-14 0:00:00' and  -- 双十一期间价格不能算啊...
+        price > 0
 
         group by sku_id
         having max(update_time) >= '%s'
