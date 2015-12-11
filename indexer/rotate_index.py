@@ -2,9 +2,11 @@
 
 import commands
 from datasys.memcachedHelper import memcachedStatic
+from worthy_service import catalog_service,sku_service
 
 CORESEEK_PATH = '/usr/local/coreseek/bin/'
 ROTATE_INDEX_SHELL_CMD = 'indexer --all --rotate'
+
 
 def execute_rotate_index():
 
@@ -19,6 +21,12 @@ def execute_rotate_index():
 def flush_memcache_content():
     mc = memcachedStatic.getMemCache()
     mc.flush_all()
+
+def re_cache():
+    clist = catalog_service.getCatalogs()
+    for item in clist:
+        catalog_id = item['catalog_id']
+        sku_service.getSkuListByCatalogID(catalog_id,startpos=0)
 
 if __name__ == '__main__':
 

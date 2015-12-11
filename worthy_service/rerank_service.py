@@ -31,6 +31,10 @@ def _rerank_thumb_list(thumb_list, apply_category_mixer = False):
     dict_catalog = defaultdict(int)
 
     total = len(thumb_list)
+    maxnum = service_config.SKU_LIST_RERANK_TOP_NUM
+    if total > maxnum:
+        total = maxnum
+
     for i in xrange(total):
         fulfill = 0
         for k in range(i,total):
