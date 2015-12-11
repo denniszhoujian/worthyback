@@ -31,3 +31,5 @@ def re_cache():
 if __name__ == '__main__':
 
     print execute_rotate_index()
+    flush_memcache_content()
+    re_cache()
