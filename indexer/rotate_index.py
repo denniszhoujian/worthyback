@@ -25,11 +25,14 @@ def flush_memcache_content():
 def re_cache():
     clist = catalog_service.getCatalogs()
     for item in clist:
-        catalog_id = item['catalog_id']
+        catalog_id = item['category_id']
         sku_service.getSkuListByCatalogID(catalog_id,startpos=0)
 
 if __name__ == '__main__':
-
+    print "step 1"
     print execute_rotate_index()
+    print "step 2"
     flush_memcache_content()
+    print 'step 3'
     re_cache()
+    print "step 4"
