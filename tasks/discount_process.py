@@ -13,9 +13,9 @@ func_list = [
     promo_item_trans.process_promo_detail,  # 10 secs
     promo_item_trans.process_gift_value,    # 2 secs
     worthy_mix.generate_worthy_mix_main,    # 300 secs
-    rotate_index.execute_rotate_index(),    # 5 secs
-    rotate_index.flush_memcache_content(),  # 1 secs
-    rotate_index.re_cache(),                # ? secs
+    rotate_index.execute_rotate_index,    # 5 secs
+    rotate_index.flush_memcache_content,  # 1 secs
+    rotate_index.re_cache,                # ? secs
 ]
 
 if __name__ == '__main__':
