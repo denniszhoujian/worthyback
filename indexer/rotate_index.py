@@ -24,6 +24,8 @@ def flush_memcache_content():
 
 def re_cache():
     clist = catalog_service.getCatalogs()
+    sku_service.getSkuListByCatalogID('_ALL_',0)
+    sku_service.getSkuListByCatalogID('_EXPENSIVE_',0)
     for item in clist:
         catalog_id = item['category_id']
         sku_service.getSkuListByCatalogID(catalog_id,startpos=0)
@@ -35,4 +37,4 @@ if __name__ == '__main__':
     flush_memcache_content()
     print 'step 3'
     re_cache()
-    print "step 4"
+    print "Done"
