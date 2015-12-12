@@ -14,7 +14,7 @@ func_list = [
     promo_item_trans.process_gift_value,    # 1 secs
     worthy_mix.generate_worthy_mix_main,    # 400 secs
     rotate_index.execute_rotate_index,      # 10 secs
-    rotate_index.flush_memcache_content,    # 5 secs
+    # rotate_index.flush_memcache_content,    # 5 secs
     rotate_index.re_cache,                  # 10 secs
 ]
 

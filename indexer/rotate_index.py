@@ -28,14 +28,14 @@ def re_cache():
     sku_service.getSkuListByCatalogID('_EXPENSIVE_',0)
     for item in clist:
         catalog_id = item['category_id']
-        sku_service.getSkuListByCatalogID(catalog_id,startpos=0)
+        sku_service.getSkuListByCatalogID(catalog_id,startpos=0,is_update_cache=True)
 
 
 if __name__ == '__main__':
     print "step 1"
     print execute_rotate_index()
     print "step 2"
-    flush_memcache_content()
+    # flush_memcache_content()
     print 'step 3'
     re_cache()
     print "Done"

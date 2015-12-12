@@ -65,12 +65,15 @@ def _processSkuThumbInfo(retrows):
 MEMCACHE_KEY_PREFIX_CATALOGID = "MEMCACHE_KEY_PREFIX_CATALOGID"
 MEMCACHE_KEY_PREFIX_QUERY = "MEMCACHE_KEY_PREFIX_QUERY"
 
-def getSkuListByCatalogID(catalog_id = '_EXPENSIVE_',startpos=0):
+def getSkuListByCatalogID(catalog_id = '_EXPENSIVE_',startpos=0,is_update_cache=False):
+    print "catalog_id = %s" %catalog_id
     keystr = memcachedStatic.getKey("%s" %catalog_id)
     mckey = "%s::%s" %(MEMCACHE_KEY_PREFIX_CATALOGID, keystr)
     #mcv is reranked result of all returned skus
-    mcv = mc.get(mckey)
-    if mcv is None:
+    mcv = None
+    if not is_update_cache:
+        mcv = mc.get(mckey)
+    if mcv is None or len(mcv)==0:
         idlist = getSku_ID_ListByCatalogID(category_id=catalog_id, startpos=startpos)
         mcv = rerank_service.rerank_list(idlist,apply_category_mixer=True)
         mc.set(mckey,mcv,service_config.SKU_LIST_CACHE_TIME_OUT)
@@ -88,9 +91,13 @@ def getSkuListByQuery(query,startpos=0):
     mckey = "%s::%s" %(MEMCACHE_KEY_PREFIX_CATALOGID, keystr)
     #mcv is reranked result of all returned skus
     mcv = mc.get(mckey)
-    if mcv is None:
+    if mcv is None or len(mcv)==0:
         mcv = rerank_service.rerank_list_query(query)
         mc.set(mckey,mcv,service_config.SKU_LIST_CACHE_TIME_OUT)
+    # print "ok"
+    # mc.flush_all()
+    # pp = mc.get(mckey)
+    # print 'ok2'
     partlist = _get_frame_from_list(mcv,startpos)
     retlist = getWorthyInfo_of_skuid_list(partlist)
     _processSkuThumbInfo(retlist)
