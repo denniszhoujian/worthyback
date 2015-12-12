@@ -75,7 +75,7 @@ if __name__ == "__main__":
             print 'Error in arguments'
 
     data_task = Jd_List_DataTask()
-    data_task.configTask(is_daily=False, interval_hours=1, sleep_time=0.2) #sleep_time was 0.5
+    data_task.configTask(is_daily=False, interval_hours=1, sleep_time=0.4) #sleep_time was 0.5
     data_task.doTask(M,N)
 
 

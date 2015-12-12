@@ -13,6 +13,7 @@ def getSearchResult(query):
     cl._host = data_config.SPHINX_HOST
     cl.SetSortMode(SPH_SORT_EXTENDED,clause='rank_score DESC')
     ##############################
+
     cl.SetLimits(0,INDEX_MAX_RECALL, 0)
     ret = cl.Query(query)
 
