@@ -387,7 +387,7 @@ if __name__ == "__main__":
     # getDiscountItemsAll()
 
     # print getSingleSku_Mixed_Info(2136882)
-    print getSkuListByCatalogID("_EXPENSIVE_",30)
-    # print getSkuListByQuery('手机',30)
+    # print getSkuListByCatalogID("_EXPENSIVE_",30)
+    print getSkuListByQuery('键盘',30)
 
     pass
