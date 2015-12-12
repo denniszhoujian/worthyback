@@ -30,6 +30,7 @@ def re_cache():
         catalog_id = item['category_id']
         sku_service.getSkuListByCatalogID(catalog_id,startpos=0)
 
+
 if __name__ == '__main__':
     print "step 1"
     print execute_rotate_index()
