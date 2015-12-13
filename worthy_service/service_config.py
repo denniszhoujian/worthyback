@@ -26,3 +26,15 @@ SKU_INDEX_WEIGHT_DICT = {
     'property_text':4,
     'category_text':4,
 }
+
+QUERY_HISTORY_MAX_NUM = 15
+CATALOG_HISTORY_MAX_NUM = 6
+
+CATEGORY_INDICATOR_MAX_NUM = 10
+PROPERTY_INDICATOR_MAX_NUM = 10
+
+PROPERTY_KEY_BLACK_WORD_LIST = [
+    '保质期',
+    '其他',
+    '其他特征',
+]

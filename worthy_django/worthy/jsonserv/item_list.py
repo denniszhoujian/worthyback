@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.core.serializers.json import DjangoJSONEncoder
 import json
 import jsonHelper
-from worthy_service import sku_service
+from worthy_service import sku_service,user_logging_service
 
 ####################################################################################################
 ###################    HTTP RESPONSE HERE      #####################################################
@@ -40,6 +40,12 @@ def getDiscountItemsAll(request):
     except:
         pass
 
+    device_id = "_DEFAULT_ID_"
+    try:
+        device_id = request.GET['device_id']
+    except:
+        pass
+
     ret = None
 
     use_query = False
@@ -48,8 +54,13 @@ def getDiscountItemsAll(request):
             use_query = True
             query2 = querykw.replace('"','').replace("'",'').replace('OR',' ')
             ret = sku_service.getSkuListByQuery(query2,startpos)
+
+            # record event
+            user_logging_service.log_user_event_with_thread(device_id,querykw,'')
+
     if not use_query:
         ret = sku_service.getSkuListByCatalogID(category_id,startpos)
+        user_logging_service.log_user_event_with_thread(device_id,query='',catalog_id=category_id)
 
     resp = jsonHelper.getJSONPStr(request,ret)
     return HttpResponse(resp, content_type="application/json")
