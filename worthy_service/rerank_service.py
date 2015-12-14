@@ -1,21 +1,11 @@
 # encoding: utf-8
 
 import sku_index_access
-from datasys.memcachedHelper import memcachedStatic
 import sku_service
 import service_config
 from collections import defaultdict
 
-mc = memcachedStatic.getMemCache()
-
-RERANK_CACHE_KEY_PREFIX = 'RERANK::'
-
 def rerank_list_query(query):
-    mckey = "%s::%s" %(RERANK_CACHE_KEY_PREFIX,memcachedStatic.getKey(query))
-    mv = mc.get(mckey)
-    if mv is not None:
-        return mv
-
     idlist = sku_index_access.getSearchResult(query)
     thumb_list = list(sku_service.getWorthyInfo_of_skuid_list(idlist))
     retlist = _rerank_thumb_list(thumb_list,apply_category_mixer=False)

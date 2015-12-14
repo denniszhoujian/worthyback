@@ -11,10 +11,11 @@ sys.setdefaultencoding('utf8')
 
 MAX_TRIES = 3
 ERROR_SLEEP_TIME = 5
+URL_READ_TIMEOUT = 20
 
 def _getWebResponse(url, encoding=""):
     html = ""
-    resp = urllib2.urlopen(url)
+    resp = urllib2.urlopen(url, timeout=URL_READ_TIMEOUT)
     try:
         html = resp.read()
         if len(encoding)>0:

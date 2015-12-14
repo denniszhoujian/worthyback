@@ -66,7 +66,7 @@ MEMCACHE_KEY_PREFIX_CATALOGID = "MEMCACHE_KEY_PREFIX_CATALOGID"
 MEMCACHE_KEY_PREFIX_QUERY = "MEMCACHE_KEY_PREFIX_QUERY"
 
 def getSkuListByCatalogID(catalog_id = '_EXPENSIVE_',startpos=0,is_update_cache=False):
-    print "catalog_id = %s" %catalog_id
+    # print "catalog_id = %s" %catalog_id
     keystr = memcachedStatic.getKey("%s" %catalog_id)
     mckey = "%s::%s" %(MEMCACHE_KEY_PREFIX_CATALOGID, keystr)
     #mcv is reranked result of all returned skus
