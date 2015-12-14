@@ -19,7 +19,10 @@ def getQueryIndicator(request):
     }
     try:
         query = request.GET['query']
-        ret = catalog_service.get_indicator_given_part_of_query(query)
+        print(len(query))
+        print "lenquery"
+        if len(query)>=2:
+            ret = catalog_service.get_indicator_given_part_of_query(query)
     except:
         pass
     resp = jsonHelper.getJSONPStr(request,ret)

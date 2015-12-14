@@ -3,6 +3,7 @@
 import dbhelper_read
 import sku_index_access,sku_service, service_config
 from datasys.memcachedHelper import memcachedStatic
+from worthy_analytics import common_analytics
 
 mc = memcachedStatic.getMemCache()
 
@@ -20,8 +21,8 @@ def get_indicator_given_part_of_query(query):
     mckey = memcachedStatic.getKey("GET_INDICATOR::%s" %query)
 
     mcv = mc.get(mckey)
-    if mcv is not None:
-        return mcv
+    # if mcv is not None:
+    #     return mcv
 
     retlist = sku_index_access.getSearchResult(query)
     sku_id_list = []
@@ -49,32 +50,90 @@ def get_indicator_given_part_of_query(query):
     ''' %(in_clause,service_config.CATEGORY_INDICATOR_MAX_NUM)
     retrows = dbhelper_read.executeSqlRead(sql, is_dirty=True)
 
-    black_list_clause = '","'.join(service_config.PROPERTY_KEY_BLACK_WORD_LIST)
-    black_list_clause = '"%s"' %black_list_clause
-    sql2 = '''
-        select
+    retlist = []
+
+    for row in retrows:
+        category_id = row['category_id']
+        # if category_id in ['670-677-5009','670-677-683','670-677-687','670-671-672']:
+        #     continue
+        category_name = row['category_name']
+        catalog_id = row['catalog_id']
+        catalog_name = row['catalog_name']
+        sql0 = '''
+            select
             p_value,
-            LENGTH(p_value) as ll,
             count(1) as count_hits,
             p_key
-        from jd_item_property_latest
-        where sku_id in (%s)
-        and LENGTH(p_value)>3 and LENGTH(p_value)<=30 and p_key<>'__DEFAULT__' and LENGTH(p_key)>=6 and LENGTH(p_key)<=21 and p_key NOT IN (%s) and p_value NOT LIKE '%%%s%%'
-        group by p_value
-        order by count_hits DESC
-        limit %s
-    ''' %(in_clause, black_list_clause, query, service_config.PROPERTY_INDICATOR_MAX_NUM)
-    # print sql2
-    retrows2 = dbhelper_read.executeSqlRead(sql2)
-    ret = {
-        'category': retrows,
-        'property': retrows2,
-    }
 
-    mc.set(mckey,ret)
+            from
 
-    return ret
+            jd_analytic_property_latest
+
+            where sku_id in (%s)
+            and category_id = "%s"
+            and p_value like "%%%s%%"
+            group by p_value
+            having count(1) > 1
+            order by count_hits DESC
+            limit %s
+        ''' %(in_clause, category_id,  query, service_config.PROPERTY_INDICATOR_MAX_NUM)
+
+        sql1 = '''
+            select
+            p_value,
+            count(1) as count_hits,
+            p_key
+
+            from
+
+            jd_analytic_property_latest
+
+            where sku_id in (%s)
+            and category_id = "%s"
+            and p_key = '品牌'
+            group by p_value
+            having count(1) > 1
+            order by count_hits DESC
+            limit %s
+        ''' %(in_clause, category_id, service_config.PROPERTY_INDICATOR_MAX_NUM)
+
+        sql2 = '''
+            select
+            p_value,
+            count(1) as count_hits,
+            p_key
+
+            from
+
+            jd_analytic_property_latest
+
+            where sku_id in (%s)
+            and category_id = "%s"
+            and p_key <> '品牌'
+            group by p_value
+            having count(1) > 1
+            order by count_hits DESC
+            limit %s
+        ''' %(in_clause, category_id, service_config.PROPERTY_INDICATOR_MAX_NUM)
+
+        retrows0 = dbhelper_read.executeSqlRead(sql0)
+        retrows1 = dbhelper_read.executeSqlRead(sql1)
+        retrows2 = dbhelper_read.executeSqlRead(sql2)
+        retlist.append({
+            'category': [category_id,category_name],
+            'property': common_analytics.dedup_leave_max(_retrows_to_list(retrows0+retrows1+retrows2, 'p_value'))
+        })
+
+    mc.set(mckey,retlist)
+
+    return retlist
+
+def _retrows_to_list(retrows, colname):
+    rlist = []
+    for row in retrows:
+        rlist.append(row[colname])
+    return rlist
 
 
 if __name__ == '__main__':
-    print get_indicator_given_part_of_query('雅诗兰黛')
+    print get_indicator_given_part_of_query('小黑瓶')
