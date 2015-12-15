@@ -121,7 +121,8 @@ def get_indicator_given_part_of_query(query):
         retrows2 = dbhelper_read.executeSqlRead(sql2)
         plist = common_analytics.dedup_leave_max(_retrows_to_list(retrows0+retrows1+retrows2, 'p_value'))
         if query not in plist:
-            plist = [query] + plist
+            if query not in category_name:
+                plist = [query] + plist
         retlist.append({
             'category': [category_id,category_name],
             'property': plist,
