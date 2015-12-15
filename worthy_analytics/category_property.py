@@ -38,9 +38,17 @@ def generate_category_property_mapping():
         using (sku_id)
 		where LENGTH(p_value)>3
 		and LENGTH(p_value)<=30
+		and not (p_value like '%%个' and length(p_value)<=10)
 		and p_key<>'__DEFAULT__'
 		and LENGTH(p_key)>=6
 		and LENGTH(p_key)<=21
+		and p_key not like '%%重%%'
+		and p_key not like '%%尺寸%%'
+		and p_key not like '%%厚度%%'
+		and p_key not like '%%宽度%%'
+		and p_key not like '%%长宽高%%'
+		and p_key not like '%%mm%%'
+		and p_key <> '上架时间'
 		and p_key NOT IN (%s)
     ''' %(black_list_clause)
 

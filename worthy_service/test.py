@@ -1,3 +1,4 @@
+#encoding: utf-8
 __author__ = 'Dennis'
 
 # uwsgi --http :8080 --chdir /Users/Dennis/webcode/worthyback/worthy_django --module django_wsgi --buffer-size=32768
@@ -17,4 +18,6 @@ def test_expedia():
     print html
 
 
-test_expedia()
+# test_expedia()
+
+print u'其他' in [u'其他',u'我们',]

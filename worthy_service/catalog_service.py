@@ -7,6 +7,12 @@ from worthy_analytics import common_analytics
 
 mc = memcachedStatic.getMemCache()
 
+P_VALUE_BLACK_LIST = [
+    u'其他', u'其它',
+    u'不支持',
+    u'无',
+]
+
 def getCatalogs():
 
     sql = 'select catalog_id, catalog_name as category_name from jd_catalog order by order_weight DESC'
@@ -18,11 +24,11 @@ def getCatalogs():
 
 
 def get_indicator_given_part_of_query(query):
-    mckey = memcachedStatic.getKey("GET_INDICATOR::%s" %query)
+    mckey = memcachedStatic.getKey("GET_INDICATOR2::%s" %query)
 
     mcv = mc.get(mckey)
-    # if mcv is not None:
-    #     return mcv
+    if mcv is not None:
+        return mcv
 
     retlist = sku_index_access.getSearchResult(query)
     sku_id_list = []
@@ -73,7 +79,7 @@ def get_indicator_given_part_of_query(query):
             and category_id = "%s"
             and p_value like "%%%s%%"
             group by p_value
-            having count(1) > 1
+            -- having count(1) > 1
             order by count_hits DESC
             limit %s
         ''' %(in_clause, category_id,  query, service_config.PROPERTY_INDICATOR_MAX_NUM)
@@ -92,7 +98,7 @@ def get_indicator_given_part_of_query(query):
             and category_id = "%s"
             and p_key = '品牌'
             group by p_value
-            having count(1) > 1
+            -- having count(1) > 1
             order by count_hits DESC
             limit %s
         ''' %(in_clause, category_id, service_config.PROPERTY_INDICATOR_MAX_NUM)
@@ -111,7 +117,7 @@ def get_indicator_given_part_of_query(query):
             and category_id = "%s"
             and p_key <> '品牌'
             group by p_value
-            having count(1) > 1
+            -- having count(1) > 1
             order by count_hits DESC
             limit %s
         ''' %(in_clause, category_id, service_config.PROPERTY_INDICATOR_MAX_NUM)
@@ -120,12 +126,14 @@ def get_indicator_given_part_of_query(query):
         retrows1 = dbhelper_read.executeSqlRead(sql1)
         retrows2 = dbhelper_read.executeSqlRead(sql2)
         plist = common_analytics.dedup_leave_max(_retrows_to_list(retrows0+retrows1+retrows2, 'p_value'))
-        if query not in plist:
-            if query not in category_name:
-                plist = [query] + plist
+        query2 = common_analytics.dedup_inline(query)
+        if query2 not in plist:
+            if query2 not in category_name:
+                plist = [query2] + plist
+        plist = common_analytics.remove_string_from_list(category_name,plist)
         qlist = []
         for item in plist:
-            if item not in ['其他','不支持','无',]:
+            if item not in P_VALUE_BLACK_LIST:
                 qlist.append(item)
         retlist.append({
             'category': [category_id,category_name],
@@ -133,8 +141,13 @@ def get_indicator_given_part_of_query(query):
         })
 
     mc.set(mckey,retlist)
-
     return retlist
+#
+# def _check_black_list(item, blacklist):
+#     for b in blacklist:
+#         if item == b:
+#             return True
+#     return False
 
 def _retrows_to_list(retrows, colname):
     rlist = []
@@ -144,4 +157,4 @@ def _retrows_to_list(retrows, colname):
 
 
 if __name__ == '__main__':
-    print get_indicator_given_part_of_query('小黑瓶')
+    print get_indicator_given_part_of_query('软壳衣裤 软壳衣裤')
