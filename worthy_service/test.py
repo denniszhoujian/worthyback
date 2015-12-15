@@ -8,3 +8,13 @@ k = alist[3]
 alist.pop(3)
 alist.insert(2,k)
 print alist
+
+import urllib2
+from datasys import url_utils
+
+def test_expedia():
+    html = url_utils._getWebResponse('http://www.expedia.com')
+    print html
+
+
+test_expedia()
