@@ -123,9 +123,13 @@ def get_indicator_given_part_of_query(query):
         if query not in plist:
             if query not in category_name:
                 plist = [query] + plist
+        qlist = []
+        for item in plist:
+            if item not in ['其他','不支持','无',]:
+                qlist.append(item)
         retlist.append({
             'category': [category_id,category_name],
-            'property': plist,
+            'property': qlist,
         })
 
     mc.set(mckey,retlist)
