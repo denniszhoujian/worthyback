@@ -126,7 +126,7 @@ def getSku_ID_ListByCatalogID(category_id = "_EXPENSIVE_", startpos = 0, min_all
     elif category_id == "_EXPENSIVE_":
         min_allowed_price = service_config.SKU_LIST_MIN_PRICE_FOR_EXPENSIVE
     else:
-        catalog_sql_part = 'catalog_id = %s and ' %int(category_id)
+        catalog_sql_part = 'catalog_id = %s and ' %category_id
 
     dt = timeHelper.getTimeAheadOfNowHours(service_config.SKU_LIST_APP_WORTHY_RECENCY_HOURS, timeHelper.FORMAT_LONG)
     sql = '''
@@ -147,6 +147,20 @@ def getSku_ID_ListByCatalogID(category_id = "_EXPENSIVE_", startpos = 0, min_all
         worthy_value1 ASC
         -- limit %s, %s
     ''' %(catalog_sql_part, min_allowed_discount_rate, min_allowed_price, service_config.SKU_LIST_MAX_ALLOWED_PRICE, dt, startpos, service_config.SKU_LIST_FRAME_SIZE)
+
+    if category_id == '_HISTORY_LOWEST_':
+        sql = '''
+        select
+        sku_id
+        from
+        jd_worthy_latest
+        where min_price_reached = 2
+        and this_update_time > '%s'
+        and a<>34
+        order by
+        worthy_value1 ASC
+        ''' %(dt)
+
     # print sql
     retrows = dbhelper_read.executeSqlRead(sql,is_dirty=True)
     vlist = []

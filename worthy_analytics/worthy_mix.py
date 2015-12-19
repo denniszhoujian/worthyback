@@ -91,6 +91,8 @@ worthy_columns = [
     'catalog_name',  # added 1123
     'min_price_reached',    # added 1130
     'this_update_date',     # added 1130
+    'min_ratio',    # added 1220
+    'LPDR',         # added 1220
 ]
 
 def _get_merged_tables():
@@ -105,6 +107,8 @@ def _get_merged_tables():
     a.median_price,
     a.min_price,
     a.max_price,
+    a.min_ratio,
+    a.LPDR,
     b.price/a.median_price as discount_rate,
     k.a,
     k.b,
@@ -268,8 +272,11 @@ def _calculate_worthy_values(worthy_rows):
         min_price = int(sku['min_price'])
         max_price = int(sku['max_price'])
         median_price = int(sku['median_price'])
+        LPDR = float(sku['LPDR'])
+        min_ratio = float(sku['min_ratio'])
+        sample_count = int(sku['sample_count'])
         sku['min_price_reached'] = 1
-        if cur_price==min_price and min_price!=max_price and min_price*1.0/(median_price*1.0) < datamining_config.SKU_MIN_PRICE_REACHED_MINIMUM_REQUIRED_DISCOUNT_RATE:
+        if cur_price==min_price and min_price!=max_price and LPDR > datamining_config.SKU_MIN_PRICE_REACHED_MINIMUM_REQUIRED_DISCOUNT_RATE and min_ratio<0.1 and sample_count >= 14:
             sku['min_price_reached'] = 2
 
         # col_name_list = [

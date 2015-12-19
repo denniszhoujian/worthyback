@@ -27,7 +27,7 @@ RATING_PERCENTILE_SCORE_MATRIX = {
 }
 MIN_PRICE_REACHED_SCORE_MATRIX = {
     1:1.0,
-    2:0.9,
+    2:0.8,  # history low-est is taken as an additional 20% discount :)
 }
 
 # RANK CONFIGURATIONS

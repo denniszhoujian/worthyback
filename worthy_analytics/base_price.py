@@ -18,14 +18,16 @@ def calculate_min_max_price():
             median(price) as median_price,
             max(price) as max_price,
             max(update_time) as origin_time,
-            count(1) as sample_count
+            count(1) as sample_count,
+            min_ratio(price) as min_ratio,
+            LPDR(price) as LPDR
 
         from
         jd_item_dynamic
 
         where
 
-        -- update_time > '2015-11-14 0:00:00' and  -- 双十一期间价格不能算啊...
+        -- update_time > '2015-11-14 0:00:00' and  -- 双十一期间价格
         price > 0
 
         group by sku_id
@@ -48,6 +50,8 @@ def calculate_min_max_price():
           max_price float NOT NULL,
           origin_time datetime NOT NULL,
           sample_count int(11) NOT NULL,
+          min_ratio float NOT NULL,
+          LPDR float NOT NULL,
           PRIMARY KEY (sku_id),
           KEY skuid (sku_id)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8
