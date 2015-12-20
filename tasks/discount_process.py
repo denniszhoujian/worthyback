@@ -14,7 +14,7 @@ func_list = [
     promo_item_trans.process_gift_value,    # 1 secs
     worthy_mix.generate_worthy_mix_main,    # 400 secs
     rotate_index.execute_rotate_index,      # 10 secs
-    # rotate_index.flush_memcache_content,    # 5 secs
+    rotate_index.flush_memcache_content,    # 5 secs
     rotate_index.re_cache,                  # 10 secs
 ]
 
@@ -26,8 +26,8 @@ if __name__ == '__main__':
         function_list=func_list,
         is_daily=False,
         start_hour=0, # no use
-        interval_secs=3600*1.5, # 4 hours
-        min_sleep=1200 # 20 mins
+        interval_secs=3600, # 4 hours
+        min_sleep=60 # 20 mins
     )
     wp.run_tasks_repeated()
 
