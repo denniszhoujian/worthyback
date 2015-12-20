@@ -4,7 +4,7 @@ from process_class import WorthyProcessBase
 from worthy_analytics import promo_item_trans, worthy_mix, base_price
 import task_logging
 from indexer import rotate_index
-
+from sms import sms_api
 
 # pipeline
 func_list = [
@@ -16,6 +16,9 @@ func_list = [
     rotate_index.execute_rotate_index,      # 10 secs
     rotate_index.flush_memcache_content,    # 5 secs
     rotate_index.re_cache,                  # 10 secs
+
+    # notification
+    sms_api.sendSMS_Worthy_Index_Completed, # 5 secs
 ]
 
 if __name__ == '__main__':
