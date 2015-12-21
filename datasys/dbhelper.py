@@ -101,6 +101,29 @@ def executeSqlRead3(sql,vlist):
     return retrows
 
 
+def rename_table(original_name, new_name, is_dirty=True):
+    conn = getConnection()
+    affected_rows = 0
+    new_name_altered = '%s_altered_%s'%(new_name,int(time.time()))
+    sql1 = 'rename table %s to %s' %(new_name,new_name_altered)
+    sql2 = 'rename table %s to %s' %(original_name, new_name)
+    print sql1
+    print sql2
+    try:
+        cursor1 = conn.cursor(MySQLdb.cursors.DictCursor)
+        if is_dirty:
+            cursor1.execute('set @@session.tx_isolation="read-committed"')
+        cursor1.execute(sql1)
+        cursor1.execute(sql2)
+        conn.commit()
+        affected_rows = cursor1.rowcount
+    except Exception as e:
+        conn.rollback()
+        print e
+    finally:
+        conn.close()
+    return affected_rows
+
 def CreateTableAsDict(TableName,dic):
     try:
         conn=getConnection()

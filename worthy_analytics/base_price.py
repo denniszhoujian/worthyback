@@ -15,7 +15,8 @@ def calculate_min_max_price():
             sku_id,
             AVG(price) as average_price,
             min(price) as min_price,
-            median(price) as median_price,
+            -- median(price) as median_price,           -- changed 12/22
+            percentile_minx(price) as median_price,
             max(price) as max_price,
             max(update_time) as origin_time,
             count(1) as sample_count,
@@ -23,7 +24,8 @@ def calculate_min_max_price():
             LPDR(price) as LPDR
 
         from
-        jd_item_dynamic
+        -- jd_item_dynamic                              -- changed 12/22
+        jd_item_price
 
         where
 

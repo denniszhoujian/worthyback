@@ -115,7 +115,7 @@ def _get_frame_from_list(thumb_list,startpos):
     return thumb_list[startpos:endpos]
 
 
-def getSku_ID_ListByCatalogID(category_id = "_EXPENSIVE_", startpos = 0, min_allowed_price=service_config.SKU_LIST_MIN_ALLOWED_PRICE, min_allowed_discount_rate=service_config.SKU_LIST_MIN_ALLOWED_WORTHY_VALUE):
+def getSku_ID_ListByCatalogID(category_id = "_HISTORY_LOWEST_", startpos = 0, min_allowed_price=service_config.SKU_LIST_MIN_ALLOWED_PRICE, min_allowed_discount_rate=service_config.SKU_LIST_MIN_ALLOWED_WORTHY_VALUE):
 
     retrows = None
     t1 = time.time()
@@ -160,6 +160,34 @@ def getSku_ID_ListByCatalogID(category_id = "_EXPENSIVE_", startpos = 0, min_all
         order by
         worthy_value1 ASC
         ''' %(dt)
+
+    if category_id == 'HOT':
+        sql = '''
+        SELECT
+            sku_id
+        FROM
+            jd_notification_history_lowest
+        WHERE
+            round IN (
+                SELECT
+                    max(round)
+                FROM
+                    jd_notification_history_lowest
+            )
+        AND sku_id NOT IN (
+            SELECT
+                sku_id
+            FROM
+                jd_notification_history_lowest
+            WHERE
+                round IN (
+                    SELECT
+                        max(round) - 1
+                    FROM
+                        jd_notification_history_lowest
+                )
+        )
+        '''
 
     # print sql
     retrows = dbhelper_read.executeSqlRead(sql,is_dirty=True)

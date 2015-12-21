@@ -136,7 +136,20 @@ def processItemPromo():
             need_history=False,
             sql_create_table=sql_cb_promo_gift,
         )
-    return _generate_mixed_ret([ret1,ret2])
+
+        # record gift
+        sglist = []
+        cur_time = timeHelper.getNowLong()
+        for gg in glist:
+            sglist.append([gg[0],cur_time])
+        sql_gg = 'insert ignore into jd_analytic_sku_gift values(%s,%s)'
+        afr = dbhelper.executeSqlWriteMany(sql_gg,sglist)
+        ret3 = {
+            'status': 0 if afr > 0 else -1,
+            'msg': "",
+        }
+
+    return _generate_mixed_ret([ret1,ret2, ret3])
 
 
 def _generate_mixed_ret(ret_list):

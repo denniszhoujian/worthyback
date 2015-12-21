@@ -37,6 +37,28 @@ def crawl_sku_stock_status(sku_list):
         is_many=True
     )
 
+def crawl_sku_price(sku_list, sleep_time):
+    # no more than 5000 items here per design
+    rdict = jd_API.getPrices_JD(sku_list,sleep_time=sleep_time)
+    vlist = []
+    dt = timeHelper.getNow()
+    dtlong = timeHelper.getNowLong()
+    for key in rdict:
+        tp = rdict[key]
+        price = tp[0]
+        price_m = tp[1]
+        price_pcp = tp[2]
+        vlist.append([key,dt,dtlong,price,price_m,price_pcp])
+    return crawler_helper.persist_db_history_and_latest(
+        table_name='jd_item_price',
+        num_cols=len(vlist[0]),
+        value_list=vlist,
+        is_many=True,
+        need_history=True,
+        need_flow=False,
+    )
+
+
 def crawl_category_promo(category_id):
     rdict = jd_API.get_Promo_Category(category_id)
     dt = timeHelper.getNow()

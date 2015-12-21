@@ -80,7 +80,7 @@ class WorthyProcessBase:
                 inter = self.interval_seconds - int(t2-t1)
                 if inter < 0:
                     inter = 0
-                remaining = inter + self.START_HOUR*3600 + 10
+                remaining = inter  + 10 #+ self.START_HOUR*3600
                 logging.info("Sleep to fill interval, seconds left = %s" %(remaining) )
 
             if remaining < self.min_sleep:

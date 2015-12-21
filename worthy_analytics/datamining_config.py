@@ -37,7 +37,7 @@ col_worthyvalue_weight_dict_1 = {
             'deduction_final_score': 1.0,
             'discount': 0.75,
             'rf_ratio': 0.6,
-            'gift_ratio': 0.35,
+            'gift_ratio': 0.1,
             'rating_score_diff': 1.0,
             'min_price_reached': 1.0,
         }

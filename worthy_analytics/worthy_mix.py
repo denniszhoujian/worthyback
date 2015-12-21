@@ -1,9 +1,9 @@
 # encoding: utf-8
 
 from datasys import dbhelper,crawler_helper
+import time
 import math
 import rows_helper
-import time
 from worthy_analytics import datamining_config
 import logging
 
@@ -183,7 +183,10 @@ def _get_merged_tables():
     left join jd_category h
     on j.category_id = h.id
 
-    where b.price > 0
+    where
+
+    b.price > 0
+    and a.sku_id not in (select sku_id from jd_analytic_sku_gift)
     '''
 
     if IS_SKU_LEVEL_DEBUGGING:
@@ -390,20 +393,105 @@ def generate_worthy_mix_main():
     logging.debug('Done, using seconds: %0.1f\n' %(t4-t3) )
 
     logging.debug('4/4 >>> Now writing to db, rows = %s' %len(insert_list) )
-    ret = crawler_helper.persist_db_history_and_latest(
-        table_name='jd_worthy',
+
+    tbl_name = 'zz_worthy_%s' %int(time.time())
+    tbl_name_latest = "%s_latest" %tbl_name
+
+    ret = crawler_helper.persist_db_history_and_lastest_empty_first(
+        table_name=tbl_name,
         num_cols=len(insert_list[0]),
         value_list=insert_list,
         is_many=True,
-        need_history=True,
+        need_history=False,  ##### WAS TRUE, why we need it?
+        sql_create_table=getWorthySqlCreateTable(tbl_name_latest),
     )
+
+    logging.debug('Now altering table name...')
+    afr = dbhelper.rename_table(tbl_name_latest, 'jd_worthy_latest')
+
     t5 = time.time()
     logging.debug('Done, using seconds: %0.1f\n' %(t5-t4))
 
     return ret
+
+def getWorthySqlCreateTable(tbl_name):
+    sqlcb = '''
+    CREATE TABLE %s (
+      sku_id bigint(20) NOT NULL,
+      this_update_time datetime NOT NULL,
+      category_id varchar(255) NOT NULL,
+      category_name varchar(255) DEFAULT NULL,
+      current_price float NOT NULL,
+      average_price float NOT NULL,
+      median_price float NOT NULL,
+      min_price float NOT NULL,
+      max_price float NOT NULL,
+      discount_rate float DEFAULT NULL,
+      a int(11) DEFAULT NULL,
+      b int(11) DEFAULT NULL,
+      c int(11) DEFAULT NULL,
+      j int(11) DEFAULT NULL,
+      l int(11) DEFAULT NULL,
+      title varchar(255) DEFAULT NULL,
+      thumbnail_url varchar(255) DEFAULT NULL,
+      icon_url varchar(255) DEFAULT NULL,
+      content_deduction varchar(255) DEFAULT NULL,
+      adurl_deduction varchar(255) DEFAULT NULL,
+      is_repeat tinyint(255) DEFAULT NULL,
+      reach float DEFAULT NULL,
+      deduction float DEFAULT NULL,
+      max_deduction float DEFAULT NULL,
+      dr_ratio float DEFAULT NULL,
+      maxp_ratio float DEFAULT NULL,
+      max_deduction_ratio float DEFAULT NULL,
+      reach_2 float DEFAULT NULL,
+      deduction_2 float DEFAULT NULL,
+      max_dr_ratio float DEFAULT NULL,
+      deduction_score float DEFAULT NULL,
+      content_discount varchar(255) DEFAULT NULL,
+      adurl_discount varchar(255) DEFAULT NULL,
+      deduct_type smallint(6) DEFAULT NULL,
+      reach_num smallint(6) DEFAULT NULL,
+      discount float DEFAULT NULL,
+      free_num smallint(6) DEFAULT NULL,
+      rf_ratio float DEFAULT NULL,
+      gift_name varchar(255) DEFAULT NULL,
+      gift_num int(11) DEFAULT NULL,
+      gift_image varchar(255) DEFAULT NULL,
+      gift_sku_id bigint(20) DEFAULT NULL,
+      gift_price float DEFAULT NULL,
+      gift_value float DEFAULT NULL,
+      gift_ratio float DEFAULT NULL,
+      comment_count int(11) DEFAULT NULL,
+      rating_score float DEFAULT NULL,
+      category_rating_score float DEFAULT NULL,
+      rating_score_diff float DEFAULT NULL,
+      first_seen_date date DEFAULT NULL,
+      final_price float DEFAULT NULL,
+      final_discount float DEFAULT NULL,
+      total_discount_rate float DEFAULT NULL,
+      activity_discount_rate float DEFAULT NULL,
+      worthy_value1 float DEFAULT NULL,
+      sample_count int(11) DEFAULT NULL,
+      catalog_id bigint(20) DEFAULT NULL,
+      catalog_name varchar(255) DEFAULT NULL,
+      min_price_reached tinyint(4) NOT NULL,
+      this_update_date date NOT NULL,
+      min_ratio float NOT NULL,
+      LPDR float NOT NULL,
+      PRIMARY KEY (sku_id),
+      KEY sku (sku_id),
+      KEY worthy1 (worthy_value1),
+      KEY cur_price (current_price),
+      KEY cataid (catalog_id),
+      KEY stock_a (a)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+    ''' %tbl_name
+    return sqlcb
 
 
 if __name__ == "__main__":
     from tasks import task_logging
     task_logging.configLogging('worthy_mix')
     print generate_worthy_mix_main()
+    print int(time.time())
