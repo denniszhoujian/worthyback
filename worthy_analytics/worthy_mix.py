@@ -407,7 +407,7 @@ def generate_worthy_mix_main():
     )
 
     logging.debug('Now altering table name...')
-    afr = dbhelper.rename_table(tbl_name_latest, 'jd_worthy_latest')
+    afr = dbhelper.rename_table(tbl_name_latest, 'jd_worthy_latest', if_delete_duplicate=True)
 
     t5 = time.time()
     logging.debug('Done, using seconds: %0.1f\n' %(t5-t4))

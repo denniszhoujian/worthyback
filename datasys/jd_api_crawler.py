@@ -55,7 +55,7 @@ def crawl_sku_price(sku_list, sleep_time):
         value_list=vlist,
         is_many=True,
         need_history=True,
-        need_flow=False,
+        need_flow=True,
     )
 
 

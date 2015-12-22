@@ -65,7 +65,7 @@ def _processSkuThumbInfo(retrows):
 MEMCACHE_KEY_PREFIX_CATALOGID = "MEMCACHE_KEY_PREFIX_CATALOGID"
 MEMCACHE_KEY_PREFIX_QUERY = "MEMCACHE_KEY_PREFIX_QUERY"
 
-def getSkuListByCatalogID(catalog_id = '_EXPENSIVE_',startpos=0,is_update_cache=False):
+def getSkuListByCatalogID(catalog_id = '_HISTORY_LOWEST_',startpos=0,is_update_cache=False):
     # print "catalog_id = %s" %catalog_id
     keystr = memcachedStatic.getKey("%s" %catalog_id)
     mckey = "%s::%s" %(MEMCACHE_KEY_PREFIX_CATALOGID, keystr)
@@ -115,16 +115,18 @@ def _get_frame_from_list(thumb_list,startpos):
     return thumb_list[startpos:endpos]
 
 
-def getSku_ID_ListByCatalogID(category_id = "_HISTORY_LOWEST_", startpos = 0, min_allowed_price=service_config.SKU_LIST_MIN_ALLOWED_PRICE, min_allowed_discount_rate=service_config.SKU_LIST_MIN_ALLOWED_WORTHY_VALUE):
+def getSku_ID_ListByCatalogID(category_id = "_ALL_", startpos = 0, min_allowed_price=service_config.SKU_LIST_MIN_ALLOWED_PRICE, min_allowed_discount_rate=service_config.SKU_LIST_MIN_ALLOWED_WORTHY_VALUE):
 
     retrows = None
     t1 = time.time()
 
-    catalog_sql_part = " catalog_id is not null and catalog_id<>1000 and catalog_id<>2000 and catalog_id<>3000 and "
+    catalog_constraint = " catalog_id is not null and catalog_id<>1000 and catalog_id<>2000 and catalog_id<>3000 and "
+
     if category_id == "_ALL_":
-        pass
+        catalog_sql_part = catalog_constraint
     elif category_id == "_EXPENSIVE_":
         min_allowed_price = service_config.SKU_LIST_MIN_PRICE_FOR_EXPENSIVE
+        catalog_sql_part = catalog_constraint
     else:
         catalog_sql_part = 'catalog_id = %s and ' %category_id
 
@@ -138,8 +140,8 @@ def getSku_ID_ListByCatalogID(category_id = "_HISTORY_LOWEST_", startpos = 0, mi
         where
         %s
         worthy_value1 < %s
-        and current_price >= %s
-        and current_price < %s
+        and median_price >= %s
+        and median_price < %s
         and this_update_time > '%s'
         -- and a <> 34 -- 有货,无货标志34
         order by
@@ -154,40 +156,37 @@ def getSku_ID_ListByCatalogID(category_id = "_HISTORY_LOWEST_", startpos = 0, mi
         sku_id
         from
         jd_worthy_latest
-        where min_price_reached = 2
+        where
+        %s
+        min_price_reached = 2
         and this_update_time > '%s'
         and a<>34
         order by
         worthy_value1 ASC
-        ''' %(dt)
+        ''' %(catalog_constraint, dt)
 
     if category_id == 'HOT':
+        dt_hot = timeHelper.getTimeAheadOfNowHours(service_config.SKU_LIST_DISCOVERY_RECENCY_HOURS,format=timeHelper.FORMAT_LONG)
         sql = '''
-        SELECT
-            sku_id
-        FROM
-            jd_notification_history_lowest
-        WHERE
-            round IN (
-                SELECT
-                    max(round)
-                FROM
-                    jd_notification_history_lowest
-            )
-        AND sku_id NOT IN (
-            SELECT
-                sku_id
-            FROM
-                jd_notification_history_lowest
-            WHERE
-                round IN (
-                    SELECT
-                        max(round) - 1
-                    FROM
-                        jd_notification_history_lowest
-                )
-        )
-        '''
+        select
+
+        distinct a.sku_id
+
+        from
+
+        jd_notification_history_lowest a
+        left join
+        jd_worthy_latest b
+        using(sku_id)
+
+        where
+        %s
+        update_time > '%s'
+        and a<>34
+
+        order by
+        update_time DESC, worthy_value1 ASC
+        ''' %(catalog_constraint, dt_hot)
 
     # print sql
     retrows = dbhelper_read.executeSqlRead(sql,is_dirty=True)
@@ -288,11 +287,11 @@ def _getPriceHistory(sku_id):
     sql = '''
     select a.update_date, a.price from
 
-    (select * from jd_item_dynamic_flow
+    (select * from jd_item_price
     where sku_id = %s
     order by price ASC) a
 
-    group by a.update_date
+    -- group by a.update_date
     order by a.update_date ASC
     ''' %sku_id
     retrows = dbhelper_read.executeSqlRead(sql, is_dirty=True)

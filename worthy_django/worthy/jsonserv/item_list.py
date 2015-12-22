@@ -6,6 +6,11 @@ from django.core.serializers.json import DjangoJSONEncoder
 import json
 import jsonHelper
 from worthy_service import sku_service,user_logging_service
+import sys
+import client_uuid
+
+reload(sys)
+sys.setdefaultencoding("utf-8")
 
 ####################################################################################################
 ###################    HTTP RESPONSE HERE      #####################################################
@@ -36,7 +41,7 @@ def getDiscountItemsAll(request):
     querykw = None
     try:
         querykw = request.GET['query']
-        print "query = %s" %querykw
+        # print "query = %s" %querykw
     except:
         pass
 
@@ -45,6 +50,20 @@ def getDiscountItemsAll(request):
         device_id = request.GET['device_id']
     except:
         pass
+
+    ip = '0.0.0.0'
+    try:
+        if request.META.has_key('HTTP_X_FORWARDED_FOR'):
+            ip =  request.META['HTTP_X_FORWARDED_FOR']
+        else:
+            ip = request.META['REMOTE_ADDR']
+    except:
+        pass
+
+    need_set_cookie = False
+    if device_id == "_DEFAULT_ID_":
+        device_id = client_uuid.getClientUUID(request)
+        need_set_cookie = True
 
     ret = None
 
@@ -56,11 +75,14 @@ def getDiscountItemsAll(request):
             ret = sku_service.getSkuListByQuery(query2,startpos)
 
             # record event
-            user_logging_service.log_user_event_with_thread(device_id,querykw,'')
+            user_logging_service.log_user_event_with_thread(device_id,querykw,'',ip)
 
     if not use_query:
         ret = sku_service.getSkuListByCatalogID(category_id,startpos)
-        user_logging_service.log_user_event_with_thread(device_id,query='',catalog_id=category_id)
+        user_logging_service.log_user_event_with_thread(device_id,query='',catalog_id=category_id,remote_ip = ip)
 
     resp = jsonHelper.getJSONPStr(request,ret)
-    return HttpResponse(resp, content_type="application/json")
+    response = HttpResponse(resp, content_type="application/json")
+    if  need_set_cookie:
+        response.set_cookie(client_uuid.UUID_COOKIE_NAME,device_id)
+    return response
