@@ -120,7 +120,7 @@ def getSku_ID_ListByCatalogID(category_id = "_ALL_", startpos = 0, min_allowed_p
     retrows = None
     t1 = time.time()
 
-    catalog_constraint = " catalog_id is not null and catalog_id<>1000 and catalog_id<>2000 and catalog_id<>3000 and "
+    catalog_constraint = " catalog_id is not null and catalog_id<>1000 and catalog_id<>2000 and catalog_id<>3000 and category_name not like '%%配件%%' AND "
 
     if category_id == "_ALL_":
         catalog_sql_part = catalog_constraint
@@ -165,7 +165,7 @@ def getSku_ID_ListByCatalogID(category_id = "_ALL_", startpos = 0, min_allowed_p
         worthy_value1 ASC
         ''' %(catalog_constraint, dt)
 
-    if category_id == 'HOT':
+    elif category_id == 'HOT':
         dt_hot = timeHelper.getTimeAheadOfNowHours(service_config.SKU_LIST_DISCOVERY_RECENCY_HOURS,format=timeHelper.FORMAT_LONG)
         sql = '''
         select
@@ -181,15 +181,15 @@ def getSku_ID_ListByCatalogID(category_id = "_ALL_", startpos = 0, min_allowed_p
 
         where
         %s
-        update_time > '%s'
-        and a<>34
+        a.update_time > '%s'
+        and b.a<>34
 
         order by
-        update_time DESC, worthy_value1 ASC
+        a.update_time DESC, worthy_value1 ASC
         ''' %(catalog_constraint, dt_hot)
 
-    # print sql
-    retrows = dbhelper_read.executeSqlRead(sql,is_dirty=True)
+    print sql
+    retrows = dbhelper_read.executeSqlRead(sql)
     vlist = []
     for row in retrows:
         vlist.append(row['sku_id'])

@@ -15,15 +15,6 @@ def getHistoryLowest_SkuIds():
     skulist = sku_service.getSku_ID_ListByCatalogID(category_id = "_HISTORY_LOWEST_")
     return skulist
 
-# def get_max_round():
-#     sql = 'select max(round) as max_round from jd_notification_history_lowest'
-#     try:
-#         retrows = dbhelper.executeSqlRead(sql)
-#         return int(retrows[0]['max_round'])
-#     except:
-#         return 0
-#     return 0
-
 def get_job_update_time():
     sql = 'select job_time from jd_notification_job_status where job_name="%s"' %(NOTIFICATION_JOB_NAME)
     retrows = dbhelper.executeSqlRead2(sql)
@@ -34,7 +25,6 @@ def get_job_update_time():
 
 def update_history_lowest_store():
     skulist = getHistoryLowest_SkuIds()
-    # max_round = get_max_round() + 1
     dt = timeHelper.getNowLong()
     vlist = []
     for sku_id in skulist:
@@ -44,23 +34,8 @@ def update_history_lowest_store():
     sql2 = 'replace into jd_notification_job_status values("%s","%s")'%(NOTIFICATION_JOB_NAME,dt)
     afr2 = dbhelper.executeSqlWrite1(sql2)
     afr3 = _removeOldNotifications()
-    return [afr,afr2,afr3]
-
-# def getUpdatedSkuIds():
-#     max_round = get_max_round()
-#     sql = '''
-#     select sku_id from jd_notification_history_lowest where round=%s and sku_id not in (select sku_id from jd_notification_history_lowest where round=%s)
-#     ''' %(max_round, max_round-1)
-#     retrows = dbhelper.executeSqlRead(sql)
-#     vlist = []
-#     for row in retrows:
-#         vlist.append(row['sku_id'])
-#     ret = {
-#         'round': max_round,
-#         'num': len(vlist),
-#         'data': vlist,
-#     }
-#     return ret
+    afr4 = _removeOutdated_Nonhistory_lowest()
+    return [afr,afr2,afr3,afr4]
 
 def getUpdatedSkuIds():
     ut = get_job_update_time()
@@ -83,6 +58,30 @@ def getUpdatedSkuIds():
 def _removeOldNotifications():
     ut = timeHelper.getTimeAheadOfNowHours(24,format=timeHelper.FORMAT_LONG)
     sql = 'delete from jd_notification_history_lowest where update_time <= "%s"' %ut
+    afr = dbhelper.executeSqlWrite1(sql)
+    return afr
+
+def _removeOutdated_Nonhistory_lowest():
+    sql = '''
+    DELETE
+    FROM
+        jd_notification_history_lowest
+    WHERE
+        sku_id IN (
+            SELECT
+                sku_id
+            FROM
+                (
+                    SELECT DISTINCT
+                        a.sku_id AS sku_id
+                    FROM
+                        jd_notification_history_lowest a
+                    LEFT JOIN jd_worthy_latest b USING (sku_id)
+                    WHERE
+                        b.min_price_reached < 2
+                ) pp
+        )
+    '''
     afr = dbhelper.executeSqlWrite1(sql)
     return afr
 

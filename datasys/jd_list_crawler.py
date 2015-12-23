@@ -70,7 +70,7 @@ def crawl_category(category_id):
         sku_list.append(sku_id)
 
     # Get price of all products
-    price_obj = jd_API.getPrices_JD(sku_list,sleep_time=SLEEP_PRICE_API)
+    #price_obj = jd_API.getPrices_JD(sku_list,sleep_time=SLEEP_PRICE_API)
 
     ret_obj = {
         'status': -1,
@@ -87,11 +87,12 @@ def crawl_category(category_id):
     for i in xrange(total_goods_num):
         product_id = product_list[i][0]
         pkey = '%s' %product_id
-        if pkey in price_obj:
-            product_list[i] = product_list[i] + (price_obj[pkey][0],price_obj[pkey][1],price_obj[pkey][2],) #nowdate,nowtime,)
-        else:
-            logging.error('Error: product_id=%s cannot get result' %(product_id,price_id))
-            continue
+        # if pkey in price_obj:
+        #     product_list[i] = product_list[i] + (price_obj[pkey][0],price_obj[pkey][1],price_obj[pkey][2],) #nowdate,nowtime,)
+        # else:
+        #     logging.error('Error: product_id=%s cannot get result' %(product_id,price_id))
+        #     continue
+        product_list[i] = product_list[i] + (0,0,0,)
 
     # persist in database
     # (sku_id,sku_title,sku_url,sku_thumnail_url,sku_stock,comment_count,is_global,is_pay_on_delivery,is_free_gift,sku_icon_url, price, price_m, update_date,update_time, category_id)
