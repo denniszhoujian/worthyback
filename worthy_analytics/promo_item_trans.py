@@ -285,11 +285,11 @@ def process_promo_detail():
     today = timeHelper.getTimeAheadOfNowHours(datamining_config.PROMO_ITEM_RECENCY_HOURS,'%Y-%m-%d %H:%M:%S')
     # today = timeHelper.getTimeAheadOfNowDays(1)
     sql = '''
-        select a.*, b.title, b.price, d.id as category_id, d.name as category_name from
+        select a.*, b.price, d.id as category_id, d.name as category_name from
 
         jd_analytic_promo_item_latest a
         left join
-        jd_item_dynamic_latest b
+        jd_item_price_latest b
         on a.sku_id = b.sku_id
 
         left JOIN
@@ -330,7 +330,7 @@ def process_promo_detail():
         price = float("%s" %row['price'])
         category_id = row['category_id']
         category_name = row['category_name']
-        title = row['title']
+        # title = row['title']
         if code == 15:
             num_15 += 1
             ret = _extract_reach_deduction_array(content)
@@ -362,7 +362,7 @@ def process_promo_detail():
                     if could_deduct > max_deduction:
                         could_deduct = max_deduction
                 single_discount_rate = could_deduct/price
-                tp =[sku_id, dt, title, price, is_repeat, reach, deduction, max_deduction, dr_ratio, maxp_ratio, single_discount_rate, category_id, category_name, pid, code, name, content, adurl, origin_dt]
+                tp =[sku_id, dt, price, is_repeat, reach, deduction, max_deduction, dr_ratio, maxp_ratio, single_discount_rate, category_id, category_name, pid, code, name, content, adurl, origin_dt]
                 vlist.append(tp)
 
             if stat_has_repeat:
@@ -404,7 +404,8 @@ def process_promo_detail():
                 free_num = float(pts[1])
                 rf_ratio = float(free_num*1.0/reach_num)
 
-            tp19 =[sku_id, dt, title, price, deduct_type, reach_num, discount, free_num, rf_ratio, category_id, category_name, pid, code, name, content, adurl, origin_dt]
+            # tp19 =[sku_id, dt, title, price, deduct_type, reach_num, discount, free_num, rf_ratio, category_id, category_name, pid, code, name, content, adurl, origin_dt]
+            tp19 =[sku_id, dt, price, deduct_type, reach_num, discount, free_num, rf_ratio, category_id, category_name, pid, code, name, content, adurl, origin_dt]
             vlist19.append(tp19)
 
 
@@ -419,7 +420,7 @@ def process_promo_detail():
         CREATE TABLE jd_analytic_promo_deduction_latest (
           sku_id bigint(20) NOT NULL,
           add_time datetime NOT NULL,
-          title varchar(255) NOT NULL,
+          -- title varchar(255) NOT NULL,
           price float NOT NULL,
           is_repeat tinyint(4) NOT NULL,
           reach float NOT NULL,
@@ -444,7 +445,7 @@ def process_promo_detail():
         CREATE TABLE jd_analytic_promo_discount_latest (
           sku_id bigint(20) NOT NULL,
           add_time datetime NOT NULL,
-          title varchar(255) DEFAULT NULL,
+          -- title varchar(255) DEFAULT NULL,
           price float DEFAULT NULL,
           deduct_type smallint(6) DEFAULT NULL,
           reach_num smallint(6) DEFAULT NULL,
@@ -491,8 +492,8 @@ def process_promo_detail():
 if __name__ == "__main__":
     from tasks import task_logging
     task_logging.configLogging('debug_promo_item_trans')
-    print(processItemPromo())
+    # print(processItemPromo())
     # print(process_gift_value())
-    # print(process_promo_detail())
+    print(process_promo_detail())
 
     pass
