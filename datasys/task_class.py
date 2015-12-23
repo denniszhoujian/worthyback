@@ -29,6 +29,7 @@ class DataTask():
     group_num = 1
     num_all = 1
     num_remaining = 0
+    repeat_interval = 24 # same as interval_hours
 
     def __init__(self):
         self.job_name = self.__class__
@@ -37,11 +38,15 @@ class DataTask():
 
     def __task_order__(self,task_id):abstract()
 
-    def configTask(self, is_daily, interval_hours, sleep_time,group_num=1):
+    def configTask(self, is_daily, interval_hours, sleep_time,group_num=1, repeat_interval=-1):
         self.is_daily = is_daily
         self.interval_hours = interval_hours
         self.SLEEP_TIME = sleep_time
         self.group_num=group_num
+        if repeat_interval > 0 :
+            self.repeat_interval = repeat_interval
+        else:
+            self.repeat_interval = interval_hours
 
     def __make_string_array__ (self, plist):
         vlist = []
@@ -193,7 +198,7 @@ class DataTask():
             if self.is_daily:
                 remaining = timeHelper.getTimeLeftTillTomorrow()
             else:
-                remaining = int(self.interval_hours * 3600 - (t2-t1))
+                remaining = int(self.repeat_interval * 3600 - (t2-t1))
                 if remaining < 0:
                     remaining = 0
             remaining += 10

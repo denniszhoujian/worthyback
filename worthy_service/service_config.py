@@ -4,7 +4,7 @@
 #### SERVCIE
 ########################################################################
 
-SKU_LIST_CACHE_TIME_OUT = 3600 # seconds
+SKU_LIST_CACHE_TIME_OUT = 1200 # seconds
 SKU_LIST_FRAME_SIZE = 30
 SKU_LIST_MIN_PRICE_FOR_EXPENSIVE = 800 #CNY
 SKU_LIST_MAX_ALLOWED_PRICE = 30000 #CNY

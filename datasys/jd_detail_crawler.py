@@ -47,23 +47,23 @@ def crawl_detail_property(sku_id):
         p_value = prop_map[p_key]
         tp = (sku_id, update_time, p_key, p_value)
         vlist.append(tp)
-    sql = 'replace into jd_item_property values(%s,%s,%s,%s)'
-    affected_rows = dbhelper.executeSqlWriteMany(sql,vlist)
+    # sql = 'replace into jd_item_property values(%s,%s,%s,%s)'
+    # affected_rows = dbhelper.executeSqlWriteMany(sql,vlist)
     sql2 = 'replace into jd_item_property_latest values(%s,%s,%s,%s)'
     affected_rows2 = dbhelper.executeSqlWriteMany(sql2,vlist)
     ret = {
         'status': -1,
-        'affected_rows': affected_rows,
+        # 'affected_rows': affected_rows,
         'affected_rows2': affected_rows2
     }
-    if affected_rows>0 and affected_rows2>0:
+    if affected_rows2 > 0:
         ret['status'] = 0
     return ret
 
 def crawl_detail_images(sku_id):
     html = __get_detail_page_content__(sku_id)
     img_list = jd_detail_resolver.resolve_Images(html)
-    logging.debug(img_list)
+    # logging.debug(img_list)
     if len(img_list)==0:
         return {'status':-1}
     vlist = []
@@ -71,16 +71,16 @@ def crawl_detail_images(sku_id):
     for img in img_list:
         tp = (sku_id, update_time, img)
         vlist.append(tp)
-    sql = 'replace into jd_item_images values(%s,%s,%s)'
-    affected_rows = dbhelper.executeSqlWriteMany(sql,vlist)
+    # sql = 'replace into jd_item_images values(%s,%s,%s)'
+    # affected_rows = dbhelper.executeSqlWriteMany(sql,vlist)
     sql2 = 'replace into jd_item_images_latest values(%s,%s,%s)'
     affected_rows2 = dbhelper.executeSqlWriteMany(sql2,vlist)
     ret = {
         'status': -1,
-        'affected_rows': affected_rows,
+        # 'affected_rows': affected_rows,
         'affected_rows2': affected_rows2
     }
-    if affected_rows>0 and affected_rows2>0:
+    if affected_rows2>0:
         ret['status'] = 0
     return ret
 
