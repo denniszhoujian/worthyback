@@ -120,7 +120,7 @@ def getSku_ID_ListByCatalogID(category_id = "_ALL_", startpos = 0, min_allowed_p
     retrows = None
     t1 = time.time()
 
-    catalog_constraint = " catalog_id is not null and catalog_id<>1000 and catalog_id<>2000 and catalog_id<>3000 and category_name not like '%%配件%%' AND category_name not like '%%保护套%%' AND "
+    catalog_constraint = " catalog_id is not null and catalog_id<>1000 and catalog_id<>2000 and catalog_id<>3000 and category_name not like '%%保护套%%' AND "
 
     if category_id == "_ALL_":
         catalog_sql_part = catalog_constraint
@@ -436,6 +436,6 @@ if __name__ == "__main__":
 
     # print getSingleSku_Mixed_Info(2136882)
     # print getSkuListByCatalogID("_EXPENSIVE_",30)
-    print getSkuListByQuery('键盘',30)
-
+    # print getSkuListByQuery('键盘',30)
+    print getSku_ID_ListByCatalogID(category_id="_HISTORY_LOWEST_")
     pass

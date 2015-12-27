@@ -185,7 +185,7 @@ def _get_merged_tables():
 
     where
 
-    b.price > 0
+    a.price > 0
     and a.sku_id not in (select sku_id from jd_analytic_sku_gift)
     '''
 

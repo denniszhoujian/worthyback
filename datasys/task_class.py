@@ -70,7 +70,7 @@ class DataTask():
         else:
             stime = timeHelper.getTimeAheadOfNowHours(self.interval_hours,format='%Y-%m-%d %H:%M:%S')
             sql = 'select task_id from task_status where job_name="%s" and update_time>="%s" group by task_id' %(self.job_name,stime)
-        # print sql
+        print sql
         retrows = dbhelper.executeSqlRead(sql,is_dirty=True)
         catlist = []
         for row in retrows:
