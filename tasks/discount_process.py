@@ -10,20 +10,20 @@ from datasys import price_task_class
 # pipeline
 func_list = [
 
-    price_task_class.update_price,          # 400 secs
+    price_task_class.update_price,          # 900 secs now          # 400 secs originally
 
-    base_price.calculate_min_max_price,     # 50 secs
-    promo_item_trans.processItemPromo,      # 15 secs
-    promo_item_trans.process_promo_detail,  # 25 secs
-    promo_item_trans.process_gift_value,    # 1 secs
-    worthy_mix.generate_worthy_mix_main,    # 140 secs
-    rotate_index.execute_rotate_index,      # 10 secs
-    rotate_index.flush_memcache_content,    # 5 secs
-    rotate_index.re_cache,                  # 10 secs
+    base_price.calculate_min_max_price,     # 25 secs on monster    # 50 secs on mba
+    promo_item_trans.processItemPromo,      # 5 secs on monster     # 15 secs on mba
+    promo_item_trans.process_promo_detail,  # 5 secs on monster     # 25 secs
+    promo_item_trans.process_gift_value,    # << 1 secs
+    worthy_mix.generate_worthy_mix_main,    # 180 secs on monster   # 140 secs on mba
+    rotate_index.execute_rotate_index,      # 13 secs on monster    # 10 secs on mba
+    rotate_index.flush_memcache_content,    # << 1  secs
+    rotate_index.re_cache,                  # 35 secs on monster    # 10 secs on mba
 
     # notification
-    history_lowest.update_history_lowest_store,
-    history_lowest.temp_sendSMS,
+    history_lowest.update_history_lowest_store,     # << 1 secs
+    history_lowest.temp_sendSMS,                    # 2 secs
 ]
 
 if __name__ == '__main__':

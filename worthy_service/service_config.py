@@ -4,7 +4,7 @@
 #### SERVCIE
 ########################################################################
 
-SKU_LIST_CACHE_TIME_OUT = 1200 # seconds
+SKU_LIST_CACHE_TIME_OUT = 3600*4 # seconds
 SKU_LIST_FRAME_SIZE = 30
 SKU_LIST_MIN_PRICE_FOR_EXPENSIVE = 800 #CNY
 SKU_LIST_MAX_ALLOWED_PRICE = 30000 #CNY
@@ -33,6 +33,20 @@ CATALOG_HISTORY_MAX_NUM = 6
 
 CATEGORY_INDICATOR_MAX_NUM = 10
 PROPERTY_INDICATOR_MAX_NUM = 20
+
+PRESET_CATALOG_ID_CONSTRAINTS = [
+    1000,
+    2000,
+    3000,
+]
+
+PRESET_CATALOG_CATEGORY_WILDCARD_BLACK_WORDS = [
+    '贴膜',
+    '保护套',
+    # '苹果周边',
+    # 'iphone配件',
+
+]
 
 PROPERTY_KEY_BLACK_WORD_LIST = [
     '保质期',

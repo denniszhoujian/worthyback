@@ -32,7 +32,7 @@ class Jd_List_DataTask(DataTask):
 #
 
 def __load_white_categories___():
-    sql = 'select category_id from jd_category_white_list limit 100'
+    sql = 'select category_id from jd_category_white_list limit 1000'
     retrows = dbhelper.executeSqlRead(sql)
     retlist = []
     for row in retrows:

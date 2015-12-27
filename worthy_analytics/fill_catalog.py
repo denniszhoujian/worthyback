@@ -38,6 +38,192 @@ JD_CATALOG_ARRAY = [
     },
 
     {
+        'catalog_name': '车载电器',
+        'category_ids': [
+            '导航仪',
+            '智能驾驶',
+            '车载电台',
+            '车载电源',
+            '车载吸尘器',
+            '车载冰箱',
+            '车载净化器',
+            '行车记录仪',
+            '车载影音',
+            '安全预警仪',
+            '倒车雷达',
+            '蓝牙设备',
+        ],
+        'max_price':None,
+    },
+
+    {
+        'catalog_name': '汽车保养',
+        'category_ids': [
+            '润滑油',
+            '添加剂',
+            '滤清器',
+            '刹车片/盘',
+            '轮毂',
+            '改装配件',
+            '防冻液',
+            '雨刷',
+            '火花塞',
+            '车灯',
+            '维修配件',
+            '贴膜',
+            '汽修工具',
+            '轮胎',
+            '底盘装甲/护板',
+            '蓄电池',
+            '后视镜',
+        ],
+        'max_price':None,
+    },
+
+    {
+        'catalog_name': '汽车装饰',
+        'category_ids': [
+            '座垫',
+            '座套',
+            '脚垫',
+            '空气净化',
+            '头枕腰靠',
+            '车内饰品',
+            '功能小件',
+            '车身装饰件',
+            '香水',
+            '车衣',
+            '后备箱垫',
+        ],
+        'max_price':None,
+    },
+
+    {
+        'catalog_name': '安全自驾',
+        'category_ids': [
+            '自驾野营',
+            '胎压监测',
+            '防盗设备',
+            '充气泵',
+            # '车载安全座椅',
+            '应急救援',
+            '储物箱',
+            '保温箱',
+            '摩托车装备',
+        ],
+        'max_price':None,
+    },
+
+    {
+        'catalog_name': '期刊',
+        'category_ids': [
+            '杂志/期刊',
+        ],
+        'max_price':None,
+    },
+
+    {
+        'catalog_name': '图书-少儿',
+        'category_ids': [
+            '儿童文学',
+            '幼儿启蒙',
+            '手工游戏',
+            '智力开发',
+            '科普',
+            '绘本',
+        ],
+        'max_price':None,
+    },
+
+    {
+        'catalog_name': '图书-文艺',
+        'category_ids': [
+            '小说',
+            '文学',
+            '青春文学',
+            # '传记',
+            '动漫',
+            '艺术',
+            '摄影',
+        ],
+        'max_price':None,
+    },
+
+    {
+        'catalog_name': '图书-经管励志',
+        'category_ids': [
+            '传记',
+            '管理',
+            '金融与投资',
+            '经济',
+            '励志与成功',
+        ],
+        'max_price':None,
+    },
+
+    {
+        'catalog_name': '图书-人文社科',
+        'category_ids': [
+            '历史',
+            '心理学',
+            '政治/军事',
+            '国学/古籍',
+            '哲学/宗教',
+            '社会科学',
+            '法律',
+            '文化',
+        ],
+        'max_price':None,
+    },
+
+    {
+        'catalog_name': '图书-生活',
+        'category_ids': [
+            '家教与育儿',
+            '孕产',
+            '健身保健',
+            '旅游/地图',
+            '美食',
+            '时尚美妆',
+            '家居',
+            '手工DIY',
+            '两性',
+            '体育',
+        ],
+        'max_price':None,
+    },
+
+    {
+        'catalog_name': '图书-电子科技',
+        'category_ids': [
+            '计算机与互联网',
+            '电子/通信',
+            # '工业技术',
+            # '建筑',
+            # '医学',
+            # '农林',
+        ],
+        'max_price':None,
+    },
+
+    {
+        'catalog_name': '图书-科普',
+        'category_ids': [
+            '科学与自然',
+            '科普',
+        ],
+        'max_price':None,
+    },
+    {
+        'catalog_name': '图书-原版',
+        'category_ids': [
+            '英文原版书',
+            '港台图书',
+        ],
+        'max_price':None,
+    },
+
+    {
         'catalog_name': '餐厨用品',
         'category_ids': [
 			'	烹饪锅具	',
@@ -95,6 +281,7 @@ JD_CATALOG_ARRAY = [
         'category_ids': [
             '童装童鞋',
 			'	安全座椅	',
+            '车载安全座椅',
             '	童车童床	',
         ],
         'max_price':None,
@@ -299,7 +486,14 @@ JD_CATALOG_ARRAY = [
     },
 
 
-
+    # {
+    #     'catalog_name': '',
+    #     'category_ids': [
+    #
+    #     ],
+    #     'max_price':None,
+    # },
+    #
     # {
     #     'catalog_name': '',
     #     'category_ids': [
@@ -336,8 +530,12 @@ def _get_category_id_prefix_given_category_name(category_name) :
     if category_name in CATEGORY_MAP:
         return [CATEGORY_MAP[category_name]['category_id_prefix'],CATEGORY_MAP[category_name]['category_prefix_name'] ]
     else:
-        raise Exception("%s not found in category_map" %category_name)
-        return None
+        sql2 = 'select id from jd_category where name="%s" limit 1' %category_name
+        retrows = dbhelper.executeSqlRead2(sql2)
+        if len(retrows)==0:
+            err = "Not found in category_map : %s, returning this category_name" %category_name
+            print err
+        return [retrows[0][0],category_name]
 
 def fill_catalog():
 
@@ -364,13 +562,14 @@ def fill_catalog():
         catalog_id += 1000
 
     sql1 = 'insert into jd_catalog values(%s,%s,%s,%s)'
+    tlist += _get_fixed_catalog()
     ar1 = dbhelper.executeSqlWriteMany(sql1, tlist)
 
     sql2 = 'insert into jd_catalog_map values(%s,%s,%s,%s,%s)'
     ar2 = dbhelper.executeSqlWriteMany(sql2, vlist)
 
     print 'jd_catalog rows inserted: %s' %ar1
-    print 'jd_catalog_ref rows inserted: %s' %ar2
+    print 'jd_catalog_map rows inserted: %s' %ar2
 
 
 def empty_catalogs():
@@ -378,9 +577,19 @@ def empty_catalogs():
     sql2 = 'delete from jd_catalog_map'
     ret1 = dbhelper.executeSqlWrite1(sql1)
     ret2 = dbhelper.executeSqlWrite1(sql2)
-    print ret1
-    print ret2
+    print 'removed from jd_catalog rows = ' %ret1
+    print 'removed from jd_catalog_map rows = ' %ret2
 
+
+def _get_fixed_catalog():
+    tnow = timeHelper.getNowLong()
+    vlist = [
+        ['_ALL_','全部折扣',2000000,tnow],
+        ['_EXPENSIVE_','超值折扣',1000000,tnow],
+        ['HOT','最新发现',2500000,tnow],
+        ['_HISTORY_LOWEST_','历史最低',3000000,tnow],
+    ]
+    return vlist
 
 """
 DEBUG SQL
