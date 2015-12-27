@@ -83,6 +83,7 @@ def __getPrices_JD_100__(sku_list):
     return obj
 
 def getPrices_JD(sku_list,sleep_time=SLEEP_TIME):
+    logging.debug('sleeptime = %s' %sleep_time)
     logging.debug('sku_list len: %s' %len(sku_list))
     iters = len(sku_list)//100+1
     price_list = []

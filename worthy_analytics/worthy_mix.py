@@ -102,14 +102,14 @@ def _get_merged_tables():
     CURRENT_TIMESTAMP() as this_update_time,
     j.category_id as category_id,
     h.name as category_name,
-    b.price as current_price,
+    pp.price as current_price,
     a.average_price as average_price,
     a.median_price,
     a.min_price,
     a.max_price,
     a.min_ratio,
     a.LPDR,
-    b.price/a.median_price as discount_rate,
+    pp.price/a.median_price as discount_rate,
     k.a,
     k.b,
     k.c,
@@ -156,6 +156,9 @@ def _get_merged_tables():
     from
 
     jd_analytic_price_stat_latest a
+    left join jd_item_price_latest pp
+    on a.sku_id = pp.sku_id
+
     left join jd_item_dynamic_latest b
     on a.sku_id = b.sku_id
 
@@ -185,7 +188,7 @@ def _get_merged_tables():
 
     where
 
-    a.price > 0
+    pp.price > 0
     and a.sku_id not in (select sku_id from jd_analytic_sku_gift)
     '''
 
