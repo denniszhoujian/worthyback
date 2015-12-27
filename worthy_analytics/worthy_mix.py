@@ -397,20 +397,22 @@ def generate_worthy_mix_main():
 
     logging.debug('4/4 >>> Now writing to db, rows = %s' %len(insert_list) )
 
-    tbl_name = 'zz_worthy_%s' %int(time.time())
-    tbl_name_latest = "%s_latest" %tbl_name
+    tbl_name = 'jd_worthy'
+    # tbl_name = 'zz_worthy_%s' %int(time.time())
+    # tbl_name_latest = "%s_latest" %tbl_name
 
-    ret = crawler_helper.persist_db_history_and_lastest_empty_first(
+    # ret = crawler_helper.persist_db_history_and_lastest_empty_first(
+    ret = crawler_helper.persist_db_history_and_latest(
         table_name=tbl_name,
         num_cols=len(insert_list[0]),
         value_list=insert_list,
         is_many=True,
         need_history=False,  ##### WAS TRUE, why we need it?
-        sql_create_table=getWorthySqlCreateTable(tbl_name_latest),
+        # sql_create_table=getWorthySqlCreateTable(tbl_name_latest),
     )
 
-    logging.debug('Now altering table name...')
-    afr = dbhelper.rename_table(tbl_name_latest, 'jd_worthy_latest', if_delete_duplicate=True)
+    # logging.debug('Now altering table name...')
+    # afr = dbhelper.rename_table(tbl_name_latest, 'jd_worthy_latest', if_delete_duplicate=True)
 
     t5 = time.time()
     logging.debug('Done, using seconds: %0.1f\n' %(t5-t4))

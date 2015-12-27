@@ -25,3 +25,6 @@ print u'其他' in [u'其他',u'我们',]
 import uuid
 print uuid.uuid1()
 print uuid.uuid1()
+
+a = "<abcefg>"
+print a[1:len(a)-1]

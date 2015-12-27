@@ -1,5 +1,10 @@
 # encoding: utf-8
 
+import sys
+
+reload(sys)
+sys.setdefaultencoding("utf-8")
+
 ########################################################################
 #### SERVCIE
 ########################################################################
@@ -41,8 +46,8 @@ PRESET_CATALOG_ID_CONSTRAINTS = [
 ]
 
 PRESET_CATALOG_CATEGORY_WILDCARD_BLACK_WORDS = [
-    '贴膜',
-    '保护套',
+    u'贴膜',
+    u'保护套',
     # '苹果周边',
     # 'iphone配件',
 

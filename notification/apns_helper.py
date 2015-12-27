@@ -2,22 +2,52 @@
 
 import time
 from apns import APNs, Frame, Payload
+from datasys import dbhelper
 
-def test():
-    apns = APNs(use_sandbox=True, cert_file='public.pem', key_file='newkey.pem')
+APNS_KEY_FILE = 'newkey.pem'
+APNS_CERT_FILE = 'public.pem'
+APNS_USE_SANDBOX = True
 
-    # Send a notification
-    token_hex = '2eb2265f e06bc619 6aa41d3e 7428cf0e 4d32e70c 592977b5 c9b8e012 7da40b24'.replace(' ','')
-    payload = Payload(alert="Hello World!", sound="default", badge=1)
-    apns.gateway_server.send_notification(token_hex, payload)
 
-    # # Send multiple notifications in a single transmission
-    # frame = Frame()
-    # identifier = 1
-    # expiry = time.time()+3600
-    # priority = 10
-    # frame.add_item('2eb2265f e06bc619 6aa41d3e 7428cf0e 4d32e70c 592977b5 c9b8e012 7da40b24', payload, identifier, expiry, priority)
-    # apns.gateway_server.send_notification_multiple(frame)
+def _get_all_devices():
+    sql = 'select device_id from user_notification_device_latest'
+    retrows = dbhelper.executeSqlRead2(sql)
+    vlist = []
+    for row in retrows:
+        device_id = row[0]
+        vlist.append(device_id)
+    return vlist
+
+
+# updateList [ {'device_id':, 'update_list':} ]
+# update_list: [ {'category_name':, 'num':} ]
+
+
+# sendInfoList [ {'device_id':, 'info':} ]
+# info: {'num':, 'category_string': }
+
+
+# sendDeviceStringList : [ {'device_id': 'xxx', 'alert': 'xxx', 'badge':1 ]
+def do_send_sms(sendDeviceStringList):
+    apns = APNs(use_sandbox=APNS_USE_SANDBOX, cert_file=APNS_CERT_FILE, key_file=APNS_KEY_FILE)
+    frame = Frame()
+    identifier = 1
+    expiry = time.time()+3600*4
+    priority = 10
+
+    for info in sendDeviceStringList:
+        device_id = info['device_id']
+        alert = info['alert']
+        badge = info['badge']
+        payload = Payload(alert=alert, sound="default", badge=badge)
+        frame.add_item(device_id, payload, identifier, expiry, priority)
+
+    # DO SEND!
+    t1 = time.time()
+    apns.gateway_server.send_notification_multiple(frame)
+    t2 = time.time()
+    print "Sending %s notifications, using seconds = %s" %(len(sendDeviceStringList),int(t2-t1))
+
 
 def test2():
     feedback_connection = APNs(use_sandbox=True, cert_file='public.pem', key_file='private.pem')
@@ -27,4 +57,4 @@ def test2():
         print fail_time
 
 if __name__ == '__main__':
-    test()
+    test2()

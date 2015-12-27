@@ -14,8 +14,10 @@ urlpatterns = [
     url(r'^sku/list$', 'worthy.jsonserv.item_list.getDiscountItemsAll', name='getDiscountItemsAll'),
     url(r'^sku/info$', 'worthy.jsonserv.sku_analytics.getSkuAnalyticsInfo', name='getSkuAnalyticsInfo'),
 
-    url(r'^user/history$', 'worthy.jsonserv.user_history.getUserListHistory', name='getUserListHistory'),
 
     url(r'^query/indicator$', 'worthy.jsonserv.query_indicator.getQueryIndicator', name='getQueryIndicator'),
+
+    url(r'^user/history$', 'worthy.jsonserv.user_history.getUserListHistory', name='getUserListHistory'),
+    url(r'^user/device$', 'worthy.jsonserv.apns_device.record_device', name='record_device'),
 
 ]

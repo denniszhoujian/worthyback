@@ -7,6 +7,10 @@ import service_config
 from datasys import jd_API,timeHelper
 from datasys.memcachedHelper import memcachedStatic
 import rerank_service
+import sys
+
+reload(sys)
+sys.setdefaultencoding("utf-8")
 
 mc = memcachedStatic.getMemCache()
 
@@ -150,7 +154,6 @@ def getSku_ID_ListByCatalogID(category_id = "_ALL_", startpos = 0, min_allowed_p
         and median_price >= %s
         and median_price < %s
         and this_update_time > '%s'
-        -- and a <> 34 -- 有货,无货标志34
         order by
         -- stock_bit DESC,
         worthy_value1 ASC
@@ -195,7 +198,7 @@ def getSku_ID_ListByCatalogID(category_id = "_ALL_", startpos = 0, min_allowed_p
         a.update_time DESC, worthy_value1 ASC
         ''' %(catalog_constraint, dt_hot)
 
-    print sql
+    # print sql
     retrows = dbhelper_read.executeSqlRead(sql)
     vlist = []
     for row in retrows:
@@ -268,17 +271,25 @@ def getWorthyInfo_of_skuid_list(sku_id_list):
     dt = timeHelper.getTimeAheadOfNowHours(service_config.SKU_LIST_APP_WORTHY_RECENCY_HOURS, timeHelper.FORMAT_LONG)
     id_clause = ','.join(sku_id_list2)
 
+    skulist3 = []
+    skuid_clause = "("
+    for sku_id in sku_id_list2:
+        skulist3.append("sku_id = %s" %sku_id)
+    skuid_clause += ' OR '.join(skulist3)
+    skuid_clause += ")"
+
     sql = '''
             select
             *, instr('%s',sku_id) as dd
             from
             jd_worthy_latest
             where
-            this_update_time > '%s'
-            and sku_id in (%s)
+            -- this_update_time > '%s'
+            -- and sku_id in (%s)
+             %s
             order by dd ASC
-        ''' %(id_clause,dt,id_clause)
-    # print sql
+        ''' %(id_clause,dt,id_clause, skuid_clause)
+    print sql
     retrows = dbhelper_read.executeSqlRead(sql,is_dirty=True)
     return retrows
 
@@ -444,9 +455,10 @@ if __name__ == "__main__":
     # print getSingleSku_Mixed_Info(2136882)
     # print getSkuListByCatalogID("_EXPENSIVE_",30)
     # print getSkuListByQuery('键盘',30)
-    print getSku_ID_ListByCatalogID(category_id="_HISTORY_LOWEST_")
-    print getSku_ID_ListByCatalogID(category_id="_ALL_")
-    print getSku_ID_ListByCatalogID(category_id="_EXPENSIVE_")
-    print getSku_ID_ListByCatalogID(category_id="HOT")
-    print getSku_ID_ListByCatalogID(category_id=3000)
+    # print getSku_ID_ListByCatalogID(category_id="_HISTORY_LOWEST_")
+    # print getSku_ID_ListByCatalogID(category_id="_ALL_")
+    # print getSku_ID_ListByCatalogID(category_id="_EXPENSIVE_")
+    # print getSku_ID_ListByCatalogID(category_id="HOT")
+    # print getSku_ID_ListByCatalogID(category_id=3000)
+    print getSkuListByCatalogID(5000)
     pass

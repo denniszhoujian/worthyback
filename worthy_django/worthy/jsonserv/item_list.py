@@ -76,10 +76,12 @@ def getDiscountItemsAll(request):
 
             # record event
             user_logging_service.log_user_event_with_thread(device_id,querykw,'',ip)
-
+    print "here1"
     if not use_query:
         ret = sku_service.getSkuListByCatalogID(category_id,startpos)
+        print 'here222'
         user_logging_service.log_user_event_with_thread(device_id,query='',catalog_id=category_id,remote_ip = ip)
+        print 'here333'
 
     resp = jsonHelper.getJSONPStr(request,ret)
     response = HttpResponse(resp, content_type="application/json")
