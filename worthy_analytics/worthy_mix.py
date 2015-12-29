@@ -100,7 +100,7 @@ def _get_merged_tables():
     select
     a.sku_id as sku_id,
     CURRENT_TIMESTAMP() as this_update_time,
-    j.category_id as category_id,
+    j.category_id,
     h.name as category_name,
     pp.price as current_price,
     a.average_price as average_price,
@@ -151,11 +151,23 @@ def _get_merged_tables():
     f.percentile_rating_score as rating_score_diff,
     g.first_seen_date,
     a.sample_count,
-    CURRENT_DATE() as this_update_date
+    CURRENT_DATE() as this_update_date,
+	m.catalog_id,
+	m.catalog_name
 
-    from
+    FROM
 
+	jd_item_category j
+	left join jd_category h
+	on j.category_id = h.id
+
+	inner join jd_catalog_map m
+	on h.id = m.category_id
+
+	inner join
     jd_analytic_price_stat_latest a
+	on a.sku_id = j.sku_id
+
     left join jd_item_price_latest pp
     on a.sku_id = pp.sku_id
 
@@ -180,14 +192,7 @@ def _get_merged_tables():
     left join jd_item_stock_latest k
     on a.sku_id = k.sku_id
 
-    left join jd_item_category j
-    on a.sku_id = j.sku_id
-
-    left join jd_category h
-    on j.category_id = h.id
-
     where
-
     pp.price > 0
     and a.sku_id not in (select sku_id from jd_analytic_sku_gift)
     '''
@@ -270,9 +275,9 @@ def _calculate_worthy_values(worthy_rows):
     for sku in worthy_rows:
         sku['final_price'] = caculate_final_price(sku,price=None)
         sku['final_discount'] = float(sku['final_price'])/float(sku['current_price'])
-        cata_info = _get_catalogy_info_by_category_id(sku['category_id'])
-        sku['catalog_id'] = cata_info['catalog_id'] if cata_info is not None else None
-        sku['catalog_name'] = cata_info['catalog_name'] if cata_info is not None else None
+        # cata_info = _get_catalogy_info_by_category_id(sku['category_id'])
+        # sku['catalog_id'] = cata_info['catalog_id'] if cata_info is not None else None
+        # sku['catalog_name'] = cata_info['catalog_name'] if cata_info is not None else None
         # history lowest
         cur_price = int(sku['current_price'])
         min_price = int(sku['min_price'])
@@ -282,19 +287,9 @@ def _calculate_worthy_values(worthy_rows):
         min_ratio = float(sku['min_ratio'])
         sample_count = int(sku['sample_count'])
         sku['min_price_reached'] = 1
-        if cur_price==min_price and min_price!=max_price and LPDR > datamining_config.SKU_MIN_PRICE_REACHED_MINIMUM_REQUIRED_DISCOUNT_RATE and min_ratio<0.1 and sample_count >= 14:
+        if cur_price==min_price and min_price < (max_price-4.0) and LPDR > datamining_config.SKU_MIN_PRICE_REACHED_MINIMUM_REQUIRED_DISCOUNT_RATE and min_ratio<0.1 and sample_count >= 14:
             sku['min_price_reached'] = 2
 
-        # col_name_list = [
-        #     'discount_rate',
-        #     # 'max_deduction_ratio',
-        #     # 'deduction_score',
-        #     'deduction_final_score',
-        #     'discount',
-        #     'rf_ratio',
-        #     'gift_ratio',
-        #     'rating_score_diff',
-        # ]
         col_name_list = []
         for param_key in datamining_config.col_worthyvalue_weight_dict_1:
             col_name_list.append(param_key)
@@ -370,12 +365,12 @@ def _load_catalog_map_as_dict_key_category_id_prefix():
     g_catalog_map = cdict
     return g_catalog_map
 
-def _get_catalogy_info_by_category_id(category_id):
-    cdict = _load_catalog_map_as_dict_key_category_id_prefix()
-    for prefix in cdict:
-        if prefix in category_id:
-            return cdict[prefix]
-    return None
+# def _get_catalogy_info_by_category_id(category_id):
+#     cdict = _load_catalog_map_as_dict_key_category_id_prefix()
+#     for prefix in cdict:
+#         if prefix in category_id:
+#             return cdict[prefix]
+#     return None
 
 def generate_worthy_mix_main():
 
@@ -402,14 +397,44 @@ def generate_worthy_mix_main():
     # tbl_name_latest = "%s_latest" %tbl_name
 
     # ret = crawler_helper.persist_db_history_and_lastest_empty_first(
+
+    WRITE_STEP = 10000
+    wtimes = len(insert_list) // WRITE_STEP
+    wremaining = len(insert_list) - wtimes * WRITE_STEP
+    print "%s,%s,%s" %(len(insert_list),wtimes,wremaining)
+
+    total_written = 0
+    for i in xrange(wtimes):
+        tt1 = time.time()
+        partlist = insert_list[i*WRITE_STEP : (i+1)*WRITE_STEP]
+
+        ret = crawler_helper.persist_db_history_and_latest(
+            table_name=tbl_name,
+            num_cols=len(insert_list[0]),
+            value_list=partlist,
+            is_many=True,
+            need_history=False,
+        )
+        afr = ret['affected_rows_latest']
+        total_written += afr
+
+        tt2 = time.time()
+        logging.debug("Written %s/%s: affected rows = %s, using seconds: %s" %(i,wtimes+1,afr,int(tt2-tt1)) )
+
+    partlist = insert_list[wtimes*WRITE_STEP:len(insert_list)]
     ret = crawler_helper.persist_db_history_and_latest(
         table_name=tbl_name,
         num_cols=len(insert_list[0]),
-        value_list=insert_list,
+        value_list=partlist,
         is_many=True,
-        need_history=False,  ##### WAS TRUE, why we need it?
-        # sql_create_table=getWorthySqlCreateTable(tbl_name_latest),
+        need_history=False,
     )
+    afr = ret['affected_rows_latest']
+    total_written += afr
+
+    logging.debug("Written %s/%s: affected rows = %s" %(wtimes+1,wtimes+1,afr))
+    logging.debug(">>> Done, total affected rows = %s >>>" %total_written)
+
 
     # logging.debug('Now altering table name...')
     # afr = dbhelper.rename_table(tbl_name_latest, 'jd_worthy_latest', if_delete_duplicate=True)
