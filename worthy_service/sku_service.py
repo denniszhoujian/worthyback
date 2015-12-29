@@ -198,7 +198,7 @@ def getSku_ID_ListByCatalogID(category_id = "_ALL_", startpos = 0, min_allowed_p
         a.update_time DESC, worthy_value1 ASC
         ''' %(catalog_constraint, dt_hot)
 
-    # print sql
+    print sql
     retrows = dbhelper_read.executeSqlRead(sql)
     vlist = []
     for row in retrows:

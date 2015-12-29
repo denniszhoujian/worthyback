@@ -32,7 +32,7 @@ import data_config
 def configLogging(log_name, log_level=data_config.LOGGING_LEVEL):
     timenow = timeHelper.getNow()
     #filename = '/tmp/%s_worthy_%s.log' %(log_name,timenow)
-    filename = '/tmp/%s_worthy.log' %(log_name)
+    filename = '/datadisk/tmp/%s_worthy.log' %(log_name)
 
     logging.basicConfig(level=log_level,
                         format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
