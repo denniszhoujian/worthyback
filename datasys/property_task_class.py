@@ -50,7 +50,7 @@ if __name__ == "__main__":
             print 'Error in arguments'
 
     data_task = Jd_Property_DataTask(job_name="JD_PROPERTY_CRAWLER")
-    data_task.configTask(is_daily=False,interval_hours=24*30,sleep_time=0.2,repeat_interval=24)
+    data_task.configTask(is_daily=False,interval_hours=24*30,sleep_time=0.2,repeat_interval=24,record_task_complete=True)
     data_task.doTask(M,N)
 
 

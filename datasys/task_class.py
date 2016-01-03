@@ -30,6 +30,7 @@ class DataTask():
     num_all = 1
     num_remaining = 0
     repeat_interval = 24 # same as interval_hours
+    g_record_complete = False
 
     def __init__(self):
         self.job_name = self.__class__
@@ -38,7 +39,7 @@ class DataTask():
 
     def __task_order__(self,task_id):abstract()
 
-    def configTask(self, is_daily, interval_hours, sleep_time,group_num=1, repeat_interval=-1):
+    def configTask(self, is_daily, interval_hours, sleep_time,group_num=1, repeat_interval=-1, record_task_complete = False):
         self.is_daily = is_daily
         self.interval_hours = interval_hours
         self.SLEEP_TIME = sleep_time
@@ -47,6 +48,7 @@ class DataTask():
             self.repeat_interval = repeat_interval
         else:
             self.repeat_interval = interval_hours
+        self.g_record_complete = record_task_complete
 
     def __make_string_array__ (self, plist):
         vlist = []
@@ -159,7 +161,8 @@ class DataTask():
                     logging.debug('return: %s' %ret)
 
                     if ret['status'] == 0:
-                        self.__record_task_complete__(group_task_list)
+                        if g_record_complete:
+                            self.__record_task_complete__(group_task_list)
                         #logging.info('recorded task complete: %s' %group_task_list)
                         is_task_success = 1
                     else:
