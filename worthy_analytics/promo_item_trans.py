@@ -304,7 +304,7 @@ def process_promo_detail():
         and b.sku_id is not NULL
         and b.price is not NULL
     ''' %today
-    logging.debug(sql)
+    # logging.debug(sql)
     retrows = dbhelper.executeSqlRead(sql, is_dirty=True)
 
     vlist = []

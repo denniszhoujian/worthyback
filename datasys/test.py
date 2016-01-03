@@ -13,3 +13,6 @@ for i in xrange(1000):
 
 alist = vlist[100:105]
 print alist
+
+str = "abc"
+print (str.split('.'))

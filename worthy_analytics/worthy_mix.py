@@ -195,6 +195,7 @@ def _get_merged_tables():
     where
     pp.price > 0
     and a.sku_id not in (select sku_id from jd_analytic_sku_gift)
+    -- limit 100
     '''
 
     if IS_SKU_LEVEL_DEBUGGING:
@@ -273,81 +274,87 @@ def _calculate_ladder_score(value, matrix):
 
 def _calculate_worthy_values(worthy_rows):
     for sku in worthy_rows:
-        sku['final_price'] = caculate_final_price(sku,price=None)
-        sku['final_discount'] = float(sku['final_price'])/float(sku['current_price'])
-        # cata_info = _get_catalogy_info_by_category_id(sku['category_id'])
-        # sku['catalog_id'] = cata_info['catalog_id'] if cata_info is not None else None
-        # sku['catalog_name'] = cata_info['catalog_name'] if cata_info is not None else None
-        # history lowest
-        cur_price = int(sku['current_price'])
-        min_price = int(sku['min_price'])
-        max_price = int(sku['max_price'])
-        median_price = int(sku['median_price'])
-        LPDR = float(sku['LPDR'])
-        min_ratio = float(sku['min_ratio'])
-        sample_count = int(sku['sample_count'])
-        sku['min_price_reached'] = 1
-        if cur_price==min_price and min_price < (max_price-4.0) and LPDR > datamining_config.SKU_MIN_PRICE_REACHED_MINIMUM_REQUIRED_DISCOUNT_RATE and min_ratio<0.1 and sample_count >= 14:
-            sku['min_price_reached'] = 2
+        try:
+            sku['final_price'] = caculate_final_price(sku,price=None)
+            sku['final_discount'] = float(sku['final_price'])/float(sku['current_price'])
+            # cata_info = _get_catalogy_info_by_category_id(sku['category_id'])
+            # sku['catalog_id'] = cata_info['catalog_id'] if cata_info is not None else None
+            # sku['catalog_name'] = cata_info['catalog_name'] if cata_info is not None else None
+            # history lowest
+            cur_price = int(sku['current_price'])
+            min_price = int(sku['min_price'])
+            max_price = int(sku['max_price'])
+            median_price = int(sku['median_price'])
+            LPDR = float(sku['LPDR'])
+            min_ratio = float(sku['min_ratio'])
+            sample_count = int(sku['sample_count'])
+            sku['min_price_reached'] = 1
+            if cur_price==min_price and min_price < (max_price-4.0) and LPDR > datamining_config.SKU_MIN_PRICE_REACHED_MINIMUM_REQUIRED_DISCOUNT_RATE and min_ratio<0.1 and sample_count >= 14:
+                sku['min_price_reached'] = 2
 
-        col_name_list = []
-        for param_key in datamining_config.col_worthyvalue_weight_dict_1:
-            col_name_list.append(param_key)
+            col_name_list = []
+            for param_key in datamining_config.col_worthyvalue_weight_dict_1:
+                col_name_list.append(param_key)
 
-        deduction_score = 1.0
-        d1 = sku['max_deduction_ratio']
-        d2 = sku['deduction_score']
-        if d1 is None:
-            d1 = 0
-        if d2 is None:
-            d2 = 0
+            deduction_score = 1.0
+            d1 = sku['max_deduction_ratio']
+            d2 = sku['deduction_score']
+            if d1 is None:
+                d1 = 0
+            if d2 is None:
+                d2 = 0
 
-        if float(d1) >= float(d2):
-            deduction_score = 1.0 - d1
-        else:
-            deduction_score = 1.0 - (float(d1)+float(d2))/2.0
+            if float(d1) >= float(d2):
+                deduction_score = 1.0 - d1
+            else:
+                deduction_score = 1.0 - (float(d1)+float(d2))/2.0
 
-        param_dict = {}
-        param_dict['deduction_final_score'] = deduction_score
-        for item in col_name_list:
-            param_dict[item] = 1.0
-            if item not in sku:
-                continue
-            if sku[item] is not None:
-                val  = float(sku[item])
-                if val > 0.0:   ###################### NOTE THIS ###################
-                    param_dict[item] = val
-                    # discount should be divided by 10
-                    if item in ['discount']:
-                        param_dict[item] = val / 10.0
-                    # there are cases where gift price is None, in db it's -1.
-                    # generally these are not valuable, so make it 1.0 here.
-                    if item in ['gift_ratio']:
-                        val2 = 1.0 - val
-                        if val2 < datamining_config.MAX_GIFT_DISCOUNT:
-                            val2 = datamining_config.MAX_GIFT_DISCOUNT
-                        param_dict[item] = val2
-                    # For reach-free, the larger the value of reach_num, the less valuable the deal is.
-                    # so make the score less when reach_num goes higher.
-                    if item in ['rf_ratio']:
-                        reach_num = float(sku['reach_num'])
-                        score = float(param_dict[item])
-                        param_dict[item] = 1 - (1.0-score)/math.pow((reach_num-1.0),datamining_config.DISCOUNT_REACH_NUM_POWER_BASE)
-                    if item in ['rating_score_diff']:
-                        param_dict[item] = _calculate_ladder_score(val,datamining_config.RATING_PERCENTILE_SCORE_MATRIX)
-                    if item in ['min_price_reached']:
-                        param_dict[item] = _calculate_ladder_score(val,datamining_config.MIN_PRICE_REACHED_SCORE_MATRIX)
+            param_dict = {}
+            param_dict['deduction_final_score'] = deduction_score
+            for item in col_name_list:
+                param_dict[item] = 1.0
+                if item not in sku:
+                    continue
+                if sku[item] is not None:
+                    val  = float(sku[item])
+                    if val > 0.0:   ###################### NOTE THIS ###################
+                        param_dict[item] = val
+                        # discount should be divided by 10
+                        if item in ['discount']:
+                            param_dict[item] = val / 10.0
+                        # there are cases where gift price is None, in db it's -1.
+                        # generally these are not valuable, so make it 1.0 here.
+                        if item in ['gift_ratio']:
+                            val2 = 1.0 - val
+                            if val2 < datamining_config.MAX_GIFT_DISCOUNT:
+                                val2 = datamining_config.MAX_GIFT_DISCOUNT
+                            param_dict[item] = val2
+                        # For reach-free, the larger the value of reach_num, the less valuable the deal is.
+                        # so make the score less when reach_num goes higher.
+                        if item in ['rf_ratio']:
+                            reach_num = float(sku['reach_num'])
+                            score = float(param_dict[item])
+                            param_dict[item] = 1 - (1.0-score)/math.pow((reach_num-1.0),datamining_config.DISCOUNT_REACH_NUM_POWER_BASE)
+                        if item in ['rating_score_diff']:
+                            param_dict[item] = _calculate_ladder_score(val,datamining_config.RATING_PERCENTILE_SCORE_MATRIX)
+                        if item in ['min_price_reached']:
+                            param_dict[item] = _calculate_ladder_score(val,datamining_config.MIN_PRICE_REACHED_SCORE_MATRIX)
 
 
-        # The most easy algorithm to calculate final worthy score
-        value1 = _calculate_weighted_score(param_dict, datamining_config.col_worthyvalue_weight_dict_1)
-        sku['worthy_value1'] = value1
+            # The most easy algorithm to calculate final worthy score
+            value1 = _calculate_weighted_score(param_dict, datamining_config.col_worthyvalue_weight_dict_1)
+            sku['worthy_value1'] = value1
 
-        value2 = _calculate_weighted_score(param_dict, col_worthyvalue_weight_dict_acitivity)
-        sku['activity_discount_rate'] = value2
+            value2 = _calculate_weighted_score(param_dict, col_worthyvalue_weight_dict_acitivity)
+            sku['activity_discount_rate'] = value2
 
-        value3 = _calculate_weighted_score(param_dict, col_worthyvalue_weight_dict_deduct_even)
-        sku['total_discount_rate'] = value3
+            value3 = _calculate_weighted_score(param_dict, col_worthyvalue_weight_dict_deduct_even)
+            sku['total_discount_rate'] = value3
+
+        except Exception as e:
+            print 'Exception in worthy step2 : %s' %e
+            print 'sku_id = %s' %sku['sku_id']
+
 
     return 0
 
