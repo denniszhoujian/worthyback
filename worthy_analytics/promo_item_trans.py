@@ -63,7 +63,7 @@ def processItemPromo():
                     gift_name = "赠品"
                     try:
                         gift_name = gift['nm']
-                        gift_num = gift['num'] if 'num' in gift else 1 
+                        gift_num = gift['num'] if 'num' in gift else 1
                         gift_image = gift['mp'] if 'mp' in gift else ""
                         gift_sku_id = gift['sid'] if 'sid' in gift else ""
                         gift_gt = gift['gt'] if 'gt' in gift else ""

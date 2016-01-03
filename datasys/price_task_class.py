@@ -57,5 +57,5 @@ if __name__ == "__main__":
     data_task = Jd_Price_Task()
     data_task.configTask(is_daily=False,interval_hours=0,sleep_time=0.1, group_num=2000)
     data_task.doTask(M,N)
-
+ 
 
