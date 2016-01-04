@@ -161,7 +161,7 @@ class DataTask():
                     logging.debug('return: %s' %ret)
 
                     if ret['status'] == 0:
-                        if g_record_complete:
+                        if self.g_record_complete:
                             self.__record_task_complete__(group_task_list)
                         #logging.info('recorded task complete: %s' %group_task_list)
                         is_task_success = 1

@@ -7,7 +7,7 @@ LOGGING_LEVEL = logging.DEBUG
 
 def configLogging(log_name, log_level=LOGGING_LEVEL):
 
-    filename = '/datadisk//tmp/%s_task.log' %(log_name)
+    filename = '/tmp/%s_task.log' %(log_name)
 
     logging.basicConfig(level=log_level,
                         format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
