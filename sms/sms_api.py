@@ -425,7 +425,7 @@ class RestAPI:
 
 
 def sendSMS_Worthy(info_dict):
-	mobs = ['18501070400',]
+	mobs = ['18501070400','18601142073']
 	for mob in mobs:
 		sendSMS_Worthy_Index_Completed(mob,info_dict)
 
