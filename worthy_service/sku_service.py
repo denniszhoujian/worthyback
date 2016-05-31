@@ -306,7 +306,7 @@ def _getPriceHistory(sku_id):
     select a.update_date, a.price from
 
     (select * from jd_item_price
-    where sku_id = %s
+    where sku_id = %s and price>0
     order by price ASC) a
 
     -- group by a.update_date
